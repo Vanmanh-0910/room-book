@@ -1,7 +1,0 @@
-node_modules/
-package-lock.json
-docs/diagrams/src/*.log
-.DS_Store
-
-# prototype tooling
-shot.js
