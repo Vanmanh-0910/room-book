@@ -1,355 +1,281 @@
-// UC-02: Home Page — Full Prototype Layout (TypeScript)
-import React, { useState } from 'react';
+// ODauDay Stay — Airbnb Vietnam Exact Homepage Layout & Micro-Animations (TypeScript)
+import React, { useState, useRef } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { useStore } from '../../contexts/StoreContext';
-import { UCTag, PropertyCard } from '../../components/UI';
-import {
-  Compass,
-  GeoAltFill,
-  CalendarCheck,
-  CalendarX,
-  PeopleFill,
-  Search,
-  PatchCheckFill,
-  ShieldCheck,
-  CashCoin,
-  Headset,
-  ExclamationOctagon,
-  ArrowRight,
-  Broadcast,
-  SearchHeart,
-  GridFill,
-  Water,
-  TreeFill,
-  Building,
-  Fire,
-  Percent,
-} from 'react-bootstrap-icons';
-
-const CATEGORIES = [
-  { id: 'all', name: 'Tất cả chỗ ở', icon: <GridFill /> },
-  { id: 'homestay', name: 'Homestay ven hồ Tây', icon: <Water /> },
-  { id: 'villa', name: 'Biệt thự sinh thái Ba Vì', icon: <TreeFill /> },
-  { id: 'apartment', name: 'Căn hộ Studio trung tâm', icon: <Building /> },
-  { id: 'bungalow', name: 'Nhà gỗ view thung lũng', icon: <Fire /> },
-  { id: 'deal', name: 'Ưu đãi cuối tuần', icon: <Percent /> },
-];
+import { PropertyCard } from '../../components/UI';
+import SearchBar from '../../components/SearchBar';
+import { Search, ChevronLeft, ChevronRight, X } from 'react-bootstrap-icons';
+import { Property } from '../../data';
 
 export default function HomePage() {
   const { store } = useStore();
   const navigate = useNavigate();
 
-  const [kw, setKw] = useState('Hồ Tây');
-  const [checkIn, setCheckIn] = useState('2027-01-10');
-  const [checkOut, setCheckOut] = useState('2027-01-12');
-  const [guests, setGuests] = useState('2');
-  const [activeCategory, setActiveCategory] = useState('all');
+  const [kw, setKw] = useState('');
+  const [checkIn, setCheckIn] = useState('');
+  const [checkOut, setCheckOut] = useState('');
+  const [guests, setGuests] = useState('');
+  const [showFeeBadge, setShowFeeBadge] = useState(true);
 
   const data = store.getData();
-  const properties = data.properties || [];
+  const properties: Property[] = data.properties || [];
+
+  // Group properties into lush, rich destination collections (6-7 items each for wide screens)
+  const hanoiSection = [
+    ...properties.filter(p => p.city === 'Hà Nội'),
+    ...properties.filter(p => p.city === 'Vĩnh Phúc' || p.city === 'Ninh Bình'),
+  ];
+
+  const beachSection = [
+    ...properties.filter(p => ['Kiên Giang', 'Quảng Ninh', 'Bà Rịa - Vũng Tàu', 'Bình Định', 'Quảng Nam'].includes(p.city)),
+  ];
+
+  const mountainSection = [
+    ...properties.filter(p => ['Lào Cai', 'Lâm Đồng', 'Vĩnh Phúc', 'Thừa Thiên Huế'].includes(p.city)),
+    ...properties.filter(p => p.type.toLowerCase().includes('gỗ') || p.type.toLowerCase().includes('biệt thự')),
+  ];
+
+  const topRatedSection = [...properties].sort((a, b) => (b.rating || 5) - (a.rating || 5));
 
   const handleSearch = (e: React.FormEvent) => {
     e.preventDefault();
     const params = new URLSearchParams();
-    if (kw) params.set('kw', kw);
+    if (kw.trim()) params.set('kw', kw.trim());
     if (checkIn) params.set('in', checkIn);
     if (checkOut) params.set('out', checkOut);
     if (guests) params.set('guests', guests);
     navigate(`/search?${params.toString()}`);
   };
 
-  const filteredProperties = properties.filter(p => {
-    if (activeCategory === 'all') return true;
-    if (activeCategory === 'homestay') return p.type.toLowerCase().includes('homestay');
-    if (activeCategory === 'villa') return p.type.toLowerCase().includes('biệt thự') || p.type.toLowerCase().includes('villa');
-    if (activeCategory === 'apartment') return p.type.toLowerCase().includes('căn hộ');
-    if (activeCategory === 'bungalow') return p.type.toLowerCase().includes('gỗ') || p.type.toLowerCase().includes('bungalow');
-    return true;
-  });
+  // Destination Section with Horizontal Scroll and < > Buttons
+  const DestinationSection = ({ title, linkKw, items }: { title: string; linkKw: string; items: Property[] }) => {
+    const scrollContainerRef = useRef<HTMLDivElement>(null);
+
+    const scrollLeft = () => {
+      if (scrollContainerRef.current) {
+        scrollContainerRef.current.scrollBy({ left: -360, behavior: 'smooth' });
+      }
+    };
+
+    const scrollRight = () => {
+      if (scrollContainerRef.current) {
+        scrollContainerRef.current.scrollBy({ left: 360, behavior: 'smooth' });
+      }
+    };
+
+    // Remove duplicates if any
+    const uniqueItems = Array.from(new Map(items.map(item => [item.id, item])).values());
+
+    return (
+      <section style={{ marginBottom: '3.5rem' }}>
+        {/* Section Header */}
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.25rem' }}>
+          <Link
+            to={`/search?kw=${encodeURIComponent(linkKw)}`}
+            style={{
+              fontSize: '1.45rem',
+              fontWeight: 700,
+              color: '#222222',
+              display: 'inline-flex',
+              alignItems: 'center',
+              gap: '0.45rem',
+              textDecoration: 'none',
+              letterSpacing: '-0.02em',
+              transition: 'color 0.15s ease',
+            }}
+            onMouseEnter={e => (e.currentTarget.style.color = '#FF385C')}
+            onMouseLeave={e => (e.currentTarget.style.color = '#222222')}
+          >
+            <span>{title}</span>
+            <span style={{ fontSize: '1.2rem' }}>→</span>
+          </Link>
+
+          {/* Navigation Scroll Buttons */}
+          <div style={{ display: 'flex', gap: '0.65rem' }}>
+            <button
+              type="button"
+              onClick={scrollLeft}
+              aria-label="Cuộn sang trái"
+              style={{
+                width: 34,
+                height: 34,
+                borderRadius: '50%',
+                border: '1px solid #DDDDDD',
+                background: '#ffffff',
+                cursor: 'pointer',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                color: '#222222',
+                boxShadow: '0 1px 3px rgba(0, 0, 0, 0.05)',
+                transition: 'all 0.15s ease',
+              }}
+              onMouseEnter={e => {
+                e.currentTarget.style.borderColor = '#222222';
+                e.currentTarget.style.transform = 'scale(1.05)';
+              }}
+              onMouseLeave={e => {
+                e.currentTarget.style.borderColor = '#DDDDDD';
+                e.currentTarget.style.transform = 'scale(1)';
+              }}
+            >
+              <ChevronLeft style={{ fontSize: '0.85rem' }} />
+            </button>
+
+            <button
+              type="button"
+              onClick={scrollRight}
+              aria-label="Cuộn sang phải"
+              style={{
+                width: 34,
+                height: 34,
+                borderRadius: '50%',
+                border: '1px solid #DDDDDD',
+                background: '#ffffff',
+                cursor: 'pointer',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                color: '#222222',
+                boxShadow: '0 1px 3px rgba(0, 0, 0, 0.05)',
+                transition: 'all 0.15s ease',
+              }}
+              onMouseEnter={e => {
+                e.currentTarget.style.borderColor = '#222222';
+                e.currentTarget.style.transform = 'scale(1.05)';
+              }}
+              onMouseLeave={e => {
+                e.currentTarget.style.borderColor = '#DDDDDD';
+                e.currentTarget.style.transform = 'scale(1)';
+              }}
+            >
+              <ChevronRight style={{ fontSize: '0.85rem' }} />
+            </button>
+          </div>
+        </div>
+
+        {/* Horizontal Carousel Row */}
+        <div
+          ref={scrollContainerRef}
+          style={{
+            display: 'grid',
+            gridAutoFlow: 'column',
+            gridAutoColumns: 'minmax(270px, 310px)',
+            gap: '18px',
+            overflowX: 'auto',
+            scrollSnapType: 'x mandatory',
+            scrollbarWidth: 'none',
+            msOverflowStyle: 'none',
+            padding: '4px 0 12px',
+          }}
+          className="no-scrollbar"
+        >
+          {uniqueItems.map(p => (
+            <div key={p.id} style={{ scrollSnapAlign: 'start' }}>
+              <PropertyCard
+                property={p}
+                checkIn={checkIn}
+                checkOut={checkOut}
+                guests={guests}
+                nights={2}
+              />
+            </div>
+          ))}
+        </div>
+      </section>
+    );
+  };
 
   return (
-    <main>
-      {/* Breadcrumb & Tag */}
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '1rem', marginBottom: '0.5rem' }}>
-        <UCTag>
-          <Compass /> UC-02 · Tìm kiếm và xem chỗ ở
-        </UCTag>
-        <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', fontSize: '0.85rem', color: 'var(--muted)' }}>
-          <GeoAltFill className="text-danger" /> <span>Địa điểm phổ biến: <strong>Hồ Tây, Hà Nội</strong></span>
-        </div>
+    <div style={{ maxWidth: 1760, margin: '0 auto', padding: '0 2.5rem 6rem' }}>
+      {/* Big Hero Search Bar (Shared SearchBar Component) */}
+      <div style={{ margin: '0.5rem auto 3rem', maxWidth: 880 }}>
+        <SearchBar
+          variant="hero"
+          initialKw={kw}
+          initialCheckIn={checkIn}
+          initialCheckOut={checkOut}
+          initialGuests={guests}
+        />
       </div>
 
-      {/* Hero Title */}
-      <h1 className="page-title">Khám phá &amp; Đặt Homestay, Biệt Thự Nghỉ Dưỡng Cao Cấp</h1>
-      <p className="page-sub">
-        Hệ thống số hóa quy trình tìm kiếm và đặt phòng, tự động kiểm tra lịch khả dụng theo thời gian thực, ngăn chặn đặt trùng phòng và minh bạch chính sách giá theo tiêu chuẩn OOAD.
-      </p>
+      {/* Destination Sections (Horizontal Carousels) */}
+      <DestinationSection
+        title="Nơi lưu trú được ưa chuộng tại Hà Nội &amp; Hồ Tây"
+        linkKw="Hồ Tây"
+        items={hanoiSection}
+      />
 
-      {/* Quick Category Filter Pills */}
-      <div className="category-pills">
-        {CATEGORIES.map(cat => (
-          <div
-            key={cat.id}
-            className={`category-pill ${activeCategory === cat.id ? 'active' : ''}`}
-            onClick={() => setActiveCategory(cat.id)}
-            style={{ cursor: 'pointer' }}
-          >
-            {cat.icon} {cat.name}
-          </div>
-        ))}
-      </div>
+      <DestinationSection
+        title="Còn phòng tại Ba Vì &amp; Tam Đảo vào tháng tới"
+        linkKw="Ba Vì"
+        items={hanoiSection.slice(1).concat(mountainSection.slice(0, 3))}
+      />
 
-      {/* Search Hero Panel (Airbnb & Booking.com Standard) */}
-      <section className="ota-search-hero" aria-label="Bộ lọc tìm kiếm">
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.25rem', flexWrap: 'wrap', gap: '0.5rem' }}>
-          <div>
-            <h2 style={{ margin: 0, fontSize: '1.35rem', fontWeight: 800, display: 'flex', alignItems: 'center', gap: '0.5rem', color: 'var(--ink)' }}>
-              <SearchHeart className="text-brand" /> Tìm kiếm phòng trống &amp; Báo giá tức thì
-            </h2>
-            <span className="muted" style={{ fontSize: '0.88rem' }}>
-              Khớp tự động lịch trống và kiểm tra xung đột thời gian thực (BR-03 / BR-04)
-            </span>
-          </div>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-            <span className="badge badge-active">
-              <Broadcast /> Trực tuyến 24/7
-            </span>
-            <span className="badge badge-completed">
-              <ShieldCheck /> Xác thực tức thì
-            </span>
-          </div>
-        </div>
+      <DestinationSection
+        title="Biệt thự &amp; Căn hộ nghỉ dưỡng view biển"
+        linkKw="Biển"
+        items={beachSection}
+      />
 
-        <form onSubmit={handleSearch}>
-          <div className="ota-search-bar">
-            <div className="ota-search-item">
-              <label htmlFor="kw">
-                <GeoAltFill className="text-danger" /> ĐỊA ĐIỂM / KHU VỰC
-              </label>
-              <input
-                id="kw"
-                type="text"
-                placeholder="Bạn muốn đến đâu? (VD: Hồ Tây, Ba Vì...)"
-                value={kw}
-                onChange={e => setKw(e.target.value)}
-                required
-              />
-            </div>
+      <DestinationSection
+        title="Nhà gỗ mộc mạc &amp; Săn mây tại Sa Pa, Đà Lạt"
+        linkKw="Sa Pa"
+        items={mountainSection}
+      />
 
-            <div className="ota-search-item">
-              <label htmlFor="in">
-                <CalendarCheck className="text-brand" /> NHẬN PHÒNG
-              </label>
-              <input
-                id="in"
-                type="date"
-                value={checkIn}
-                onChange={e => setCheckIn(e.target.value)}
-                required
-              />
-            </div>
+      <DestinationSection
+        title="Chỗ ở được đánh giá 5 sao cao nhất"
+        linkKw="Hà Nội"
+        items={topRatedSection}
+      />
 
-            <div className="ota-search-item">
-              <label htmlFor="out">
-                <CalendarX className="text-brand" /> TRẢ PHÒNG
-              </label>
-              <input
-                id="out"
-                type="date"
-                value={checkOut}
-                onChange={e => setCheckOut(e.target.value)}
-                required
-              />
-            </div>
-
-            <div className="ota-search-item">
-              <label htmlFor="guests">
-                <PeopleFill className="text-brand" /> KHÁCH &amp; LOẠI HÌNH
-              </label>
-              <select
-                id="guests"
-                value={guests}
-                onChange={e => setGuests(e.target.value)}
-              >
-                <option value="1">1 khách · Homestay</option>
-                <option value="2">2 khách · Homestay</option>
-                <option value="3">3 khách · Căn hộ</option>
-                <option value="4">4 khách · Villa nghỉ dưỡng</option>
-              </select>
-            </div>
-
-            <div>
-              <button type="submit" className="ota-search-btn">
-                <Search /> <span>Tìm kiếm</span>
-              </button>
-            </div>
-          </div>
-
-          {/* Secondary Filters & Test Shortcuts */}
-          <div
+      {/* Floating Bottom Pill: "Giá đã bao gồm mọi khoản phí" with dismiss */}
+      {showFeeBadge && (
+        <div
+          style={{
+            position: 'fixed',
+            bottom: 24,
+            left: '50%',
+            transform: 'translateX(-50%)',
+            zIndex: 90,
+            background: 'rgba(255, 255, 255, 0.96)',
+            backdropFilter: 'blur(10px)',
+            border: '1px solid #DDDDDD',
+            boxShadow: '0 6px 20px rgba(0, 0, 0, 0.15)',
+            borderRadius: '9999px',
+            padding: '0.65rem 1.15rem 0.65rem 1.25rem',
+            display: 'flex',
+            alignItems: 'center',
+            gap: '0.6rem',
+            fontSize: '0.88rem',
+            fontWeight: 600,
+            color: '#222222',
+            animation: 'fadeIn 0.3s ease',
+          }}
+        >
+          <span style={{ fontSize: '1rem' }}>🏷️</span>
+          <span>Giá đã bao gồm mọi khoản phí</span>
+          <button
+            type="button"
+            onClick={() => setShowFeeBadge(false)}
+            aria-label="Đóng thông báo"
             style={{
+              background: 'transparent',
+              border: 'none',
+              cursor: 'pointer',
+              color: '#717171',
+              padding: '2px',
               display: 'flex',
-              justifyContent: 'space-between',
               alignItems: 'center',
-              flexWrap: 'wrap',
-              gap: '1rem',
-              marginTop: '1.15rem',
-              paddingTop: '1rem',
-              borderTop: '1px solid #f1f5f9',
+              justifyContent: 'center',
+              marginLeft: '0.25rem',
             }}
           >
-            <div style={{ display: 'flex', alignItems: 'center', gap: '1rem', flexWrap: 'wrap', fontSize: '0.86rem', color: 'var(--ink-secondary)' }}>
-              <span>
-                <strong>Lọc nhanh:</strong>
-              </span>
-              <label style={{ display: 'inline-flex', alignItems: 'center', gap: '0.35rem', margin: 0, cursor: 'pointer' }}>
-                <input type="checkbox" defaultChecked /> Có bếp riêng
-              </label>
-              <label style={{ display: 'inline-flex', alignItems: 'center', gap: '0.35rem', margin: 0, cursor: 'pointer' }}>
-                <input type="checkbox" defaultChecked /> View trọn hồ
-              </label>
-              <label style={{ display: 'inline-flex', alignItems: 'center', gap: '0.35rem', margin: 0, cursor: 'pointer' }}>
-                <input type="checkbox" /> Tự nhận phòng (Smartlock)
-              </label>
-            </div>
-
-            <div className="btn-group">
-              <Link
-                className="btn btn-outline btn-sm"
-                to="/search?in=2027-01-15&out=2027-01-10"
-                style={{ fontSize: '0.8rem', borderRadius: 'var(--radius-full)' }}
-              >
-                <ExclamationOctagon className="text-danger" /> Thử nghiệm lỗi ngày đi ≤ ngày đến (TC-03)
-              </Link>
-            </div>
-          </div>
-        </form>
-      </section>
-
-      {/* Featured Properties Section Header */}
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end', marginTop: '3.5rem', marginBottom: '1.5rem', flexWrap: 'wrap', gap: '1rem' }}>
-        <div>
-          <h2 style={{ margin: 0, fontSize: '1.65rem', fontWeight: 800, letterSpacing: '-0.02em' }}>
-            Chỗ ở nổi bật được đánh giá cao nhất
-          </h2>
-          <p className="muted" style={{ margin: '0.35rem 0 0', fontSize: '0.96rem' }}>
-            Những homestay đạt tiêu chuẩn chất lượng cao, có phản hồi nhanh từ chủ nhà và điểm đánh giá từ 4.5 sao trở lên ({filteredProperties.length} chỗ ở)
-          </p>
+            <X style={{ fontSize: '1.1rem' }} />
+          </button>
         </div>
-        <Link
-          to="/search"
-          style={{ fontWeight: 700, fontSize: '0.95rem', display: 'inline-flex', alignItems: 'center', gap: '0.4rem' }}
-        >
-          Xem toàn bộ danh sách <ArrowRight />
-        </Link>
-      </div>
-
-      {/* Properties Grid */}
-      <div className="grid grid-4" style={{ marginBottom: '3.5rem' }}>
-        {filteredProperties.map(property => (
-          <PropertyCard
-            key={property.id}
-            property={property}
-            checkIn={checkIn}
-            checkOut={checkOut}
-            guests={guests}
-          />
-        ))}
-      </div>
-
-      {/* Value Propositions */}
-      <section
-        style={{
-          background: 'linear-gradient(135deg, #f0fdfa 0%, #e0f2fe 100%)',
-          border: '1px solid #ccfbf1',
-          borderRadius: 'var(--radius)',
-          padding: '2.5rem',
-          marginBottom: '3.5rem',
-        }}
-      >
-        <div style={{ textAlign: 'center', maxWidth: 640, margin: '0 auto 2rem' }}>
-          <span
-            style={{
-              fontSize: '0.82rem',
-              fontWeight: 700,
-              textTransform: 'uppercase',
-              letterSpacing: '0.06em',
-              color: 'var(--brand)',
-            }}
-          >
-            Tại sao chọn ODauDay Stay?
-          </span>
-          <h3 style={{ fontSize: '1.5rem', fontWeight: 800, margin: '0.5rem 0' }}>
-            Trải nghiệm đặt phòng an tâm tuyệt đối
-          </h3>
-        </div>
-        <div className="grid grid-3">
-          <div style={{ background: '#fff', padding: '1.5rem', borderRadius: '12px', boxShadow: 'var(--shadow-sm)' }}>
-            <PatchCheckFill style={{ fontSize: '2rem', color: 'var(--brand)', marginBottom: '0.75rem' }} />
-            <h4 style={{ margin: '0 0 0.5rem', fontSize: '1.1rem' }}>Cơ sở đã kiểm duyệt</h4>
-            <p className="muted" style={{ margin: 0, fontSize: '0.88rem', lineHeight: 1.6 }}>
-              100% hình ảnh thực tế, tiện nghi được xác minh và kiểm tra tiêu chuẩn trước khi niêm yết.
-            </p>
-          </div>
-          <div style={{ background: '#fff', padding: '1.5rem', borderRadius: '12px', boxShadow: 'var(--shadow-sm)' }}>
-            <CashCoin style={{ fontSize: '2rem', color: '#059669', marginBottom: '0.75rem' }} />
-            <h4 style={{ margin: '0 0 0.5rem', fontSize: '1.1rem' }}>Giá gốc từ chủ nhà</h4>
-            <p className="muted" style={{ margin: 0, fontSize: '0.88rem', lineHeight: 1.6 }}>
-              Không phí dịch vụ ẩn (BR-05). Giá báo là giá thanh toán cuối cùng, cam kết minh bạch.
-            </p>
-          </div>
-          <div style={{ background: '#fff', padding: '1.5rem', borderRadius: '12px', boxShadow: 'var(--shadow-sm)' }}>
-            <Headset style={{ fontSize: '2rem', color: '#3b82f6', marginBottom: '0.75rem' }} />
-            <h4 style={{ margin: '0 0 0.5rem', fontSize: '1.1rem' }}>Hỗ trợ tức thời 24/7</h4>
-            <p className="muted" style={{ margin: 0, fontSize: '0.88rem', lineHeight: 1.6 }}>
-              Đội ngũ chăm sóc khách hàng và chủ nhà luôn đồng hành trong suốt chuyến đi của bạn.
-            </p>
-          </div>
-        </div>
-      </section>
-
-      {/* Host Invitation Banner */}
-      <section
-        style={{
-          background: 'linear-gradient(135deg, #0f172a 0%, #1e293b 100%)',
-          color: '#fff',
-          borderRadius: 'var(--radius)',
-          padding: '2.5rem',
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'space-between',
-          flexWrap: 'wrap',
-          gap: '1.5rem',
-        }}
-      >
-        <div style={{ maxWidth: 540 }}>
-          <span
-            style={{
-              fontSize: '0.82rem',
-              fontWeight: 700,
-              textTransform: 'uppercase',
-              letterSpacing: '0.06em',
-              color: '#38bdf8',
-            }}
-          >
-            Dành cho chủ nhà &amp; Đối tác
-          </span>
-          <h3 style={{ fontSize: '1.6rem', fontWeight: 800, margin: '0.5rem 0 0.75rem' }}>
-            Bạn đang sở hữu căn hộ hoặc homestay?
-          </h3>
-          <p style={{ margin: 0, opacity: 0.85, fontSize: '0.95rem', lineHeight: 1.6 }}>
-            Gia nhập mạng lưới ODauDay Stay để tiếp cận hàng nghìn du khách, quản lý lịch phòng tự động và tối ưu
-            doanh thu với công cụ chuyên biệt.
-          </p>
-        </div>
-        <Link
-          to="/register"
-          className="btn btn-primary"
-          style={{ padding: '0.9rem 1.8rem', fontSize: '1rem', fontWeight: 700 }}
-        >
-          Đăng ký làm chủ nhà ngay
-        </Link>
-      </section>
-    </main>
+      )}
+    </div>
   );
 }

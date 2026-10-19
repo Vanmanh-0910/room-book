@@ -1,17 +1,26 @@
-// UC-06: Host Properties Management Page (TypeScript)
+// UC-06: Host Properties Management Page (Standardized Components)
 import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { useStore } from '../../contexts/StoreContext';
-import { UCTag, Breadcrumb } from '../../components/UI';
+import {
+  Breadcrumb,
+  Button,
+  InputField,
+  SelectField,
+  TextAreaField,
+  Card,
+  StatCard,
+  Modal,
+  Badge,
+} from '../../components';
 import { formatVND } from '../../constants';
 import {
-  Building,
   PlusLg,
   Trash,
   DoorOpen,
   ShieldCheck,
   HouseDoor,
-  GeoAltFill,
+  Building,
 } from 'react-bootstrap-icons';
 import { Property } from '../../data';
 
@@ -68,198 +77,179 @@ export default function HostPropertiesPage() {
 
   return (
     <div style={{ maxWidth: 1200, margin: '1.5rem auto', padding: '0 1rem' }}>
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '0.75rem', marginBottom: '0.75rem' }}>
-        <Breadcrumb items={[{ label: 'Host Portal', to: '/host/properties' }, { label: 'Quản lý cơ sở lưu trú' }]} />
-        <UCTag>
-          <Building /> UC-06 · Quản lý cơ sở lưu trú
-        </UCTag>
-      </div>
+      <Breadcrumb
+        items={[
+          { label: 'Host Portal', to: '/host/properties' },
+          { label: 'Quản lý cơ sở lưu trú' },
+        ]}
+      />
 
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end', flexWrap: 'wrap', gap: '1rem', marginBottom: '1.5rem' }}>
         <div>
-          <h1 className="page-title" style={{ margin: '0 0 0.35rem' }}>
+          <h1 style={{ fontSize: '1.85rem', fontWeight: 800, margin: '0 0 0.35rem', color: '#222222' }}>
             Cơ sở lưu trú của tôi
           </h1>
-          <p className="page-sub" style={{ margin: 0 }}>
+          <p style={{ margin: 0, color: '#717171', fontSize: '0.95rem' }}>
             Chủ nhà chỉ được quyền quản lý các cơ sở thuộc quyền sở hữu của mình (Tài khoản: <strong>{owner}</strong>).
           </p>
         </div>
-        <button type="button" className="btn btn-primary" onClick={() => setShowAddModal(true)}>
-          <PlusLg /> Đăng ký cơ sở mới
-        </button>
+
+        <Button
+          variant="primary"
+          icon={<PlusLg />}
+          onClick={() => setShowAddModal(true)}
+        >
+          Đăng ký cơ sở mới
+        </Button>
       </div>
 
-      {/* KPI Cards */}
-      <div className="grid grid-3" style={{ marginBottom: '1.75rem' }}>
-        <div className="panel" style={{ borderLeft: '4px solid var(--brand)', padding: '1.25rem' }}>
-          <span className="muted" style={{ fontSize: '0.8rem', textTransform: 'uppercase', fontWeight: 700, letterSpacing: '0.04em' }}>
-            Tổng số cơ sở sở hữu
-          </span>
-          <p style={{ fontSize: '1.85rem', fontWeight: 800, color: 'var(--ink)', margin: '0.25rem 0 0' }}>
-            {properties.length} cơ sở
-          </p>
-          <span className="muted" style={{ fontSize: '0.8rem' }}>
-            Tất cả đã kiểm duyệt &amp; đang đón khách
-          </span>
-        </div>
-
-        <div className="panel" style={{ borderLeft: '4px solid var(--ok)', padding: '1.25rem' }}>
-          <span className="muted" style={{ fontSize: '0.8rem', textTransform: 'uppercase', fontWeight: 700, letterSpacing: '0.04em' }}>
-            Tỷ lệ lấp đầy tháng này
-          </span>
-          <p style={{ fontSize: '1.85rem', fontWeight: 800, color: 'var(--ok)', margin: '0.25rem 0 0' }}>
-            85%
-          </p>
-          <span className="muted" style={{ fontSize: '0.8rem' }}>
-            Tăng 12% so với tháng trước
-          </span>
-        </div>
-
-        <div className="panel" style={{ borderLeft: '4px solid #f59e0b', padding: '1.25rem' }}>
-          <span className="muted" style={{ fontSize: '0.8rem', textTransform: 'uppercase', fontWeight: 700, letterSpacing: '0.04em' }}>
-            Đánh giá trung bình
-          </span>
-          <p style={{ fontSize: '1.85rem', fontWeight: 800, color: '#f59e0b', margin: '0.25rem 0 0' }}>
-            5.0 ★
-          </p>
-          <span className="muted" style={{ fontSize: '0.8rem' }}>
-            Đạt tiêu chuẩn Superhost
-          </span>
-        </div>
+      {/* Standardized KPI Metric Cards */}
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: '1.25rem', marginBottom: '1.75rem' }}>
+        <StatCard
+          label="Tổng số cơ sở sở hữu"
+          value={`${properties.length} cơ sở`}
+          sublabel="Tất cả đã kiểm duyệt & đang đón khách"
+          accent="brand"
+          icon={<Building />}
+        />
+        <StatCard
+          label="Tỷ lệ lấp đầy tháng này"
+          value="85%"
+          sublabel="Tăng 12% so với tháng trước"
+          accent="ok"
+        />
+        <StatCard
+          label="Đánh giá trung bình"
+          value="5.0 ★"
+          sublabel="Đạt tiêu chuẩn Superhost"
+          accent="warn"
+        />
       </div>
 
-      {/* Add Property Form Modal / Collapsible */}
-      {showAddModal && (
-        <section className="panel" style={{ marginBottom: '1.5rem', border: '2px solid var(--brand)' }}>
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1rem' }}>
-            <h2 style={{ margin: 0, fontSize: '1.2rem' }}>Thêm cơ sở lưu trú mới</h2>
-            <button type="button" className="btn btn-outline btn-xs" onClick={() => setShowAddModal(false)}>
-              Đóng form
-            </button>
+      {/* Standardized Add Property Modal */}
+      <Modal
+        isOpen={showAddModal}
+        onClose={() => setShowAddModal(false)}
+        title="Đăng ký cơ sở lưu trú mới"
+        subtitle="Thêm chỗ ở homestay hoặc biệt thự vào danh sách quản lý của bạn"
+        size="lg"
+      >
+        <form onSubmit={handleAddProperty}>
+          <div style={{ display: 'grid', gridTemplateColumns: '1.5fr 1fr', gap: '1rem' }}>
+            <InputField
+              label="Tên cơ sở lưu trú"
+              required
+              value={name}
+              onChange={e => setName(e.target.value)}
+              placeholder="Ví dụ: ODauDay Stay Flamingo"
+            />
+            <SelectField
+              label="Loại hình chỗ ở"
+              required
+              value={type}
+              onChange={e => setType(e.target.value)}
+              options={[
+                { value: 'Homestay', label: 'Homestay' },
+                { value: 'Biệt thự', label: 'Biệt thự sinh thái' },
+                { value: 'Căn hộ', label: 'Căn hộ dịch vụ' },
+                { value: 'Nhà gỗ', label: 'Nhà gỗ nghỉ dưỡng' },
+              ]}
+            />
           </div>
 
-          <form onSubmit={handleAddProperty}>
-            <div className="row">
-              <div className="field">
-                <label>Tên cơ sở lưu trú *</label>
-                <input
-                  value={name}
-                  onChange={e => setName(e.target.value)}
-                  placeholder="Ví dụ: ODauDay Stay Flamingo"
-                  required
-                />
-              </div>
-              <div className="field">
-                <label>Loại hình chỗ ở *</label>
-                <select value={type} onChange={e => setType(e.target.value)}>
-                  <option value="Homestay">Homestay</option>
-                  <option value="Biệt thự">Biệt thự sinh thái</option>
-                  <option value="Căn hộ">Căn hộ dịch vụ</option>
-                  <option value="Nhà gỗ">Nhà gỗ nghỉ dưỡng</option>
-                </select>
-              </div>
-            </div>
+          <InputField
+            label="Địa chỉ chi tiết"
+            required
+            value={address}
+            onChange={e => setAddress(e.target.value)}
+            placeholder="Số nhà, ngõ/đường, phường/xã..."
+          />
 
-            <div className="row">
-              <div className="field">
-                <label>Địa chỉ chi tiết *</label>
-                <input
-                  value={address}
-                  onChange={e => setAddress(e.target.value)}
-                  placeholder="Số nhà, ngõ, đường, quận/huyện..."
-                  required
-                />
-              </div>
-              <div className="field">
-                <label>Tỉnh / Thành phố *</label>
-                <input
-                  value={city}
-                  onChange={e => setCity(e.target.value)}
-                  placeholder="Hà Nội, Lào Cai..."
-                  required
-                />
-              </div>
-            </div>
+          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '1rem' }}>
+            <SelectField
+              label="Tỉnh / Thành phố"
+              required
+              value={city}
+              onChange={e => setCity(e.target.value)}
+              options={[
+                { value: 'Hà Nội', label: 'Hà Nội' },
+                { value: 'Hòa Bình', label: 'Hòa Bình' },
+                { value: 'Quảng Ninh', label: 'Quảng Ninh' },
+                { value: 'Lào Cai', label: 'Lào Cai' },
+                { value: 'Lâm Đồng', label: 'Lâm Đồng' },
+                { value: 'Đà Nẵng', label: 'Đà Nẵng' },
+              ]}
+            />
+            <InputField
+              label="Khu vực / Quận huyện"
+              value={area}
+              onChange={e => setArea(e.target.value)}
+              placeholder="Ví dụ: Hồ Tây"
+            />
+            <InputField
+              label="Giá từ (VND/đêm)"
+              type="number"
+              required
+              value={priceMin}
+              onChange={e => setPriceMin(Number(e.target.value))}
+            />
+          </div>
 
-            <div className="row">
-              <div className="field">
-                <label>Khu vực cụ thể</label>
-                <input
-                  value={area}
-                  onChange={e => setArea(e.target.value)}
-                  placeholder="Hồ Tây, Sa Pa..."
-                />
-              </div>
-              <div className="field">
-                <label>Giá khởi điểm (VNĐ/đêm) *</label>
-                <input
-                  type="number"
-                  value={priceMin}
-                  onChange={e => setPriceMin(Number(e.target.value))}
-                  required
-                />
-              </div>
-            </div>
+          <TextAreaField
+            label="Mô tả cơ sở lưu trú"
+            required
+            rows={3}
+            value={desc}
+            onChange={e => setDesc(e.target.value)}
+            placeholder="Giới thiệu điểm nổi bật, view phòng, phong cách trang trí..."
+          />
 
-            <div className="field">
-              <label>Mô tả cơ sở lưu trú *</label>
-              <textarea
-                value={desc}
-                onChange={e => setDesc(e.target.value)}
-                placeholder="Giới thiệu điểm nổi bật, view phòng, phong cách trang trí..."
-                rows={3}
-                required
-              />
-            </div>
+          <InputField
+            label="URL Hình ảnh đại diện"
+            value={image}
+            onChange={e => setImage(e.target.value)}
+            placeholder="https://..."
+          />
 
-            <div className="field">
-              <label>URL Hình ảnh đại diện</label>
-              <input
-                value={image}
-                onChange={e => setImage(e.target.value)}
-                placeholder="https://..."
-              />
-            </div>
+          <div style={{ display: 'flex', gap: '0.75rem', justifyContent: 'flex-end', marginTop: '1.5rem' }}>
+            <Button type="button" variant="outline" onClick={() => setShowAddModal(false)}>
+              Hủy
+            </Button>
+            <Button type="submit" variant="primary">
+              Lưu cơ sở lưu trú
+            </Button>
+          </div>
+        </form>
+      </Modal>
 
-            <div style={{ display: 'flex', gap: '0.75rem', marginTop: '1rem' }}>
-              <button type="submit" className="btn btn-primary">
-                Lưu cơ sở lưu trú
-              </button>
-              <button type="button" className="btn btn-outline" onClick={() => setShowAddModal(false)}>
-                Hủy
-              </button>
-            </div>
-          </form>
-        </section>
-      )}
-
-      {/* Properties List Table */}
-      <section className="panel">
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1rem', borderBottom: '1px solid var(--line)', paddingBottom: '0.75rem' }}>
-          <h2 style={{ margin: 0, fontSize: '1.2rem' }}>
-            <HouseDoor className="text-brand" /> Danh sách cơ sở lưu trú ({properties.length})
-          </h2>
-          <span className="badge badge-active">
-            <ShieldCheck /> Xác thực chủ quyền
-          </span>
-        </div>
-
+      {/* Standardized Card Container for Properties Table */}
+      <Card
+        variant="default"
+        padding="none"
+        title={
+          <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+            <HouseDoor style={{ color: '#FF385C', fontSize: '1.2rem' }} />
+            <span>Danh sách cơ sở lưu trú ({properties.length})</span>
+          </div>
+        }
+        headerRight={<Badge variant="active"><ShieldCheck /> Xác thực chủ quyền</Badge>}
+      >
         <div className="table-responsive">
           <table className="table table-hover align-middle mb-0" style={{ width: '100%' }}>
             <thead>
               <tr>
-                <th style={{ padding: '0.75rem' }}>Cơ sở lưu trú</th>
-                <th style={{ padding: '0.75rem' }}>Loại hình</th>
-                <th style={{ padding: '0.75rem' }}>Địa chỉ tọa lạc</th>
-                <th style={{ padding: '0.75rem' }}>Giá từ</th>
-                <th style={{ padding: '0.75rem' }}>Trạng thái</th>
-                <th style={{ textAlign: 'right', padding: '0.75rem' }}>Thao tác</th>
+                <th style={{ padding: '0.85rem 1rem' }}>Cơ sở lưu trú</th>
+                <th style={{ padding: '0.85rem 1rem' }}>Loại hình</th>
+                <th style={{ padding: '0.85rem 1rem' }}>Địa chỉ tọa lạc</th>
+                <th style={{ padding: '0.85rem 1rem' }}>Giá từ</th>
+                <th style={{ padding: '0.85rem 1rem' }}>Trạng thái</th>
+                <th style={{ textAlign: 'right', padding: '0.85rem 1rem' }}>Thao tác</th>
               </tr>
             </thead>
             <tbody>
               {properties.map(p => (
                 <tr key={p.id}>
-                  <td style={{ padding: '0.75rem' }}>
+                  <td style={{ padding: '0.85rem 1rem' }}>
                     <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
                       <div
                         style={{
@@ -268,39 +258,40 @@ export default function HostPropertiesPage() {
                           borderRadius: 8,
                           backgroundImage: `url('${p.image}')`,
                           backgroundSize: 'cover',
+                          backgroundPosition: 'center',
                           flexShrink: 0,
                         }}
                       />
                       <div>
-                        <strong style={{ display: 'block' }}>{p.name}</strong>
-                        <span className="muted" style={{ fontSize: '0.78rem' }}>
+                        <strong style={{ display: 'block', color: '#222222' }}>{p.name}</strong>
+                        <span style={{ fontSize: '0.78rem', color: '#717171' }}>
                           {p.area || p.city}
                         </span>
                       </div>
                     </div>
                   </td>
-                  <td style={{ padding: '0.75rem' }}>{p.type}</td>
-                  <td style={{ padding: '0.75rem', fontSize: '0.88rem' }}>{p.address}</td>
-                  <td style={{ padding: '0.75rem', fontWeight: 700, color: 'var(--brand)' }}>
+                  <td style={{ padding: '0.85rem 1rem' }}>{p.type}</td>
+                  <td style={{ padding: '0.85rem 1rem', fontSize: '0.88rem', color: '#717171' }}>{p.address}</td>
+                  <td style={{ padding: '0.85rem 1rem', fontWeight: 700, color: '#FF385C' }}>
                     {formatVND(p.priceMin)}
                   </td>
-                  <td style={{ padding: '0.75rem' }}>
-                    <span className="badge badge-active">Đang đón khách</span>
+                  <td style={{ padding: '0.85rem 1rem' }}>
+                    <Badge variant="active">Đang đón khách</Badge>
                   </td>
-                  <td style={{ textAlign: 'right', padding: '0.75rem' }}>
-                    <div className="btn-group" style={{ justifyContent: 'flex-end' }}>
-                      <Link to="/host/rooms" className="btn btn-outline btn-xs" title="Quản lý phòng">
-                        <DoorOpen /> Quản lý phòng (UC-07)
+                  <td style={{ textAlign: 'right', padding: '0.85rem 1rem' }}>
+                    <div style={{ display: 'inline-flex', gap: '0.4rem', justifyContent: 'flex-end' }}>
+                      <Link to="/host/rooms">
+                        <Button variant="outline" size="xs" icon={<DoorOpen />}>
+                          Quản lý phòng
+                        </Button>
                       </Link>
-                      <button
-                        type="button"
-                        className="btn btn-outline btn-xs"
-                        style={{ color: '#dc2626' }}
-                        title="Xóa cơ sở"
+                      <Button
+                        variant="danger"
+                        size="xs"
+                        icon={<Trash />}
                         onClick={() => handleDelete(p.id, p.name)}
-                      >
-                        <Trash />
-                      </button>
+                        title="Xóa cơ sở"
+                      />
                     </div>
                   </td>
                 </tr>
@@ -308,7 +299,7 @@ export default function HostPropertiesPage() {
             </tbody>
           </table>
         </div>
-      </section>
+      </Card>
     </div>
   );
 }

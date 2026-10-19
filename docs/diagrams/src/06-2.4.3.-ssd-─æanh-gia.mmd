@@ -1,9 +1,0 @@
-sequenceDiagram
-    actor Guest as Khách thuê
-    participant System as ODauDay Stay
-    Guest->>System: submitReview(bookingCode, rating, comment)
-    alt Đơn hoàn thành và chưa đánh giá
-        System-->>Guest: reviewCreated()
-    else Không đủ điều kiện
-        System-->>Guest: reviewRejected(reason)
-    end

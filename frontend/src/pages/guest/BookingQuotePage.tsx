@@ -1,20 +1,23 @@
-// UC-03: Booking Quote & Checkout Page (TypeScript)
+// Airbnb-Inspired Booking Checkout Page (Standardized Components)
 import React, { useState } from 'react';
-import { useSearchParams, useNavigate, Link } from 'react-router-dom';
+import { useSearchParams, useNavigate } from 'react-router-dom';
 import { useStore } from '../../contexts/StoreContext';
-import { UCTag, Breadcrumb, Alert } from '../../components/UI';
+import {
+  Breadcrumb,
+  Alert,
+  InputField,
+  Button,
+  Card,
+  Badge,
+} from '../../components';
 import { formatVND } from '../../constants';
 import {
-  Diagram3,
-  CalendarCheck,
-  PeopleFill,
-  PersonFill,
-  Telephone,
-  ShieldCheck,
+  ChevronLeft,
+  StarFill,
   CreditCard,
-  Building,
-  DoorOpen,
-  PatchCheckFill,
+  CashCoin,
+  ShieldCheck,
+  CalendarCheck,
 } from 'react-bootstrap-icons';
 
 export default function BookingQuotePage() {
@@ -25,38 +28,19 @@ export default function BookingQuotePage() {
   const propertyId = Number(searchParams.get('propertyId')) || 1;
   const roomId = Number(searchParams.get('roomId')) || 1;
 
-  const [checkIn, setCheckIn] = useState(searchParams.get('in') || '2027-01-10');
-  const [checkOut, setCheckOut] = useState(searchParams.get('out') || '2027-01-12');
-  const [guests, setGuests] = useState(searchParams.get('guests') || '2');
-  const [guestName, setGuestName] = useState(currentUser?.fullName || 'Khách thuê Demo');
+  const [checkIn] = useState(searchParams.get('in') || '2027-01-10');
+  const [checkOut] = useState(searchParams.get('out') || '2027-01-12');
+  const [guests] = useState(searchParams.get('guests') || '2');
+  const [guestName, setGuestName] = useState(currentUser?.fullName || 'Khách thuê');
   const [guestPhone, setGuestPhone] = useState(currentUser?.phone || '0900000003');
   const [guestEmail, setGuestEmail] = useState(currentUser?.email || 'guest@odauday.vn');
-  const [testScenario, setTestScenario] = useState<'tc04' | 'tc05' | 'tc06'>('tc04');
+  const [paymentMethod, setPaymentMethod] = useState<'cod' | 'bank'>('cod');
 
   const property = store.getProperty(propertyId) || store.getProperty(1)!;
   const room = store.getAllRooms().find(r => r.id === roomId) || store.getAllRooms()[0];
 
-  // Calculate live quote
+  // Live price quote calculation
   const quote = store.calculateQuote(room.id, checkIn, checkOut, guests);
-
-  const handleScenarioChange = (scenario: 'tc04' | 'tc05' | 'tc06') => {
-    setTestScenario(scenario);
-    if (scenario === 'tc04') {
-      setCheckIn('2027-01-10');
-      setCheckOut('2027-01-12');
-      setGuests('2');
-    } else if (scenario === 'tc05') {
-      // Room 2 (Phòng Family) has a roomBlock 2027-02-10 -> 2027-02-12
-      setCheckIn('2027-02-10');
-      setCheckOut('2027-02-12');
-      setGuests('2');
-    } else if (scenario === 'tc06') {
-      // Exceed room capacity (Room 1 has capacity 2, guest picks 5)
-      setCheckIn('2027-01-10');
-      setCheckOut('2027-01-12');
-      setGuests('5');
-    }
-  };
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -74,275 +58,247 @@ export default function BookingQuotePage() {
     if (!res.success) {
       addToast(res.message || 'Lỗi khi tạo đơn đặt phòng.', 'error');
     } else {
-      addToast('Đặt phòng thành công (TC-04)!', 'success');
+      addToast('Đặt phòng thành công!', 'success');
       navigate(`/booking-success?code=${res.booking?.code}`);
     }
   };
 
   return (
-    <main>
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '0.75rem', marginBottom: '0.75rem' }}>
-        <Breadcrumb
-          items={[
-            { label: 'Trang chủ', to: '/' },
-            { label: property.name, to: `/property/${property.id}` },
-            { label: 'Báo giá & Xác nhận lưu trú' },
-          ]}
+    <div style={{ maxWidth: 1080, margin: '2rem auto 4rem', padding: '0 1.5rem' }}>
+      {/* Back button and page title */}
+      <div style={{ display: 'flex', alignItems: 'center', gap: '1rem', marginBottom: '2rem' }}>
+        <Button
+          variant="outline"
+          size="sm"
+          icon={<ChevronLeft />}
+          onClick={() => navigate(-1)}
+          aria-label="Quay lại"
         />
-        <UCTag>
-          <Diagram3 /> UC-03 · Báo giá &amp; Đặt phòng
-        </UCTag>
-      </div>
-
-      <h1 className="page-title" style={{ marginBottom: '1rem' }}>
-        Xác nhận thông tin &amp; Báo giá lưu trú
-      </h1>
-
-      {/* Progress Steps */}
-      <div className="steps" style={{ marginBottom: '1.75rem' }}>
-        <span className="step current">1. Báo giá chi tiết</span>
-        <span className="sep">›</span>
-        <span className="step">2. Xác nhận thông tin</span>
-        <span className="sep">›</span>
-        <span className="step">3. Hoàn tất giữ chỗ</span>
-      </div>
-
-      {/* State Switcher for Business Test Cases */}
-      <div
-        style={{
-          background: '#ffffff',
-          border: '1px solid var(--line)',
-          borderRadius: 'var(--radius)',
-          padding: '0.85rem 1.25rem',
-          marginBottom: '1.5rem',
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'space-between',
-          flexWrap: 'wrap',
-          gap: '0.75rem',
-          boxShadow: 'var(--shadow-xs)',
-        }}
-      >
-        <span style={{ fontSize: '0.88rem', fontWeight: 600, color: 'var(--ink-secondary)' }}>
-          Kịch bản kiểm thử UC-03:
-        </span>
-        <div className="btn-group">
-          <button
-            type="button"
-            className={`btn btn-sm ${testScenario === 'tc04' ? 'btn-primary' : 'btn-outline'}`}
-            onClick={() => handleScenarioChange('tc04')}
-          >
-            Báo giá hợp lệ (TC-04)
-          </button>
-          <button
-            type="button"
-            className={`btn btn-sm ${testScenario === 'tc05' ? 'btn-primary' : 'btn-outline'}`}
-            onClick={() => handleScenarioChange('tc05')}
-          >
-            Trùng lịch bảo trì (TC-05)
-          </button>
-          <button
-            type="button"
-            className={`btn btn-sm ${testScenario === 'tc06' ? 'btn-primary' : 'btn-outline'}`}
-            onClick={() => handleScenarioChange('tc06')}
-          >
-            Vượt quá sức chứa BR-02 (TC-06)
-          </button>
-        </div>
+        <h1 style={{ fontSize: '1.85rem', fontWeight: 800, margin: 0, color: '#1E293B' }}>
+          Yêu cầu đặt phòng / chỗ ở
+        </h1>
       </div>
 
       <form onSubmit={handleSubmit}>
-        <div className="layout-side">
-          {/* Left Form: Customer & Stay Details */}
+        <div style={{ display: 'grid', gridTemplateColumns: 'minmax(0, 1.4fr) minmax(340px, 400px)', gap: '3rem', alignItems: 'start' }}>
+          {/* Left Column: Guest Trip & Contact Details */}
           <div>
-            {/* Conflict or Capacity Exceeded Alerts */}
-            {!quote.success && quote.code === 'ROOM_CONFLICT' && (
-              <div className="panel" style={{ borderLeft: '4px solid var(--danger)', marginBottom: '1.5rem' }}>
-                <Alert type="error" title="Từ chối báo giá: Xung đột lịch phòng (BR-04 / TC-05)">
-                  <p style={{ margin: '0.35rem 0 0', lineHeight: 1.6 }}>{quote.message}</p>
+            {/* Warning if room conflict or capacity issue */}
+            {!quote.success && (
+              <div style={{ marginBottom: '1.5rem' }}>
+                <Alert type="error" title="Không thể đặt phòng với thông tin này">
+                  <p style={{ margin: 0, fontSize: '0.9rem' }}>{quote.message}</p>
                 </Alert>
               </div>
             )}
 
-            {!quote.success && quote.code === 'CAPACITY_EXCEEDED' && (
-              <div className="panel" style={{ borderLeft: '4px solid var(--danger)', marginBottom: '1.5rem' }}>
-                <Alert type="error" title="Từ chối báo giá: Vượt quá sức chứa tối đa (BR-06 / TC-06)">
-                  <p style={{ margin: '0.35rem 0 0', lineHeight: 1.6 }}>{quote.message}</p>
-                </Alert>
-              </div>
-            )}
-
-            <section className="panel" style={{ marginBottom: '1.5rem' }}>
-              <h2 style={{ fontSize: '1.2rem', marginTop: 0, display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-                <CalendarCheck className="text-brand" /> Thời gian &amp; Số lượng khách
-              </h2>
-
-              <div className="row">
-                <div className="field">
-                  <label htmlFor="quote-in">Ngày nhận phòng (Check-in 14:00) *</label>
-                  <input
-                    id="quote-in"
-                    type="date"
-                    value={checkIn}
-                    onChange={e => setCheckIn(e.target.value)}
-                    required
-                  />
-                </div>
-                <div className="field">
-                  <label htmlFor="quote-out">Ngày trả phòng (Check-out 12:00) *</label>
-                  <input
-                    id="quote-out"
-                    type="date"
-                    value={checkOut}
-                    onChange={e => setCheckOut(e.target.value)}
-                    required
-                  />
+            {/* Trip details */}
+            <Card title="Chuyến đi của bạn" style={{ marginBottom: '2rem' }}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '1.25rem', borderBottom: '1px solid #F1F5F9', paddingBottom: '1rem' }}>
+                <div>
+                  <strong style={{ display: 'block', fontSize: '0.98rem', color: '#1E293B' }}>Ngày lưu trú</strong>
+                  <span style={{ color: '#64748B', fontSize: '0.9rem' }}>
+                    {checkIn} – {checkOut} ({quote.nights || 2} đêm)
+                  </span>
                 </div>
               </div>
 
-              <div className="field">
-                <label htmlFor="quote-guests">
-                  <PeopleFill /> Số lượng khách lưu trú *
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
+                <div>
+                  <strong style={{ display: 'block', fontSize: '0.98rem', color: '#1E293B' }}>Số lượng khách</strong>
+                  <span style={{ color: '#64748B', fontSize: '0.9rem' }}>
+                    {guests} khách (Sức chứa tối đa: {room.capacity} khách)
+                  </span>
+                </div>
+              </div>
+            </Card>
+
+            {/* Contact details */}
+            <Card title="Thông tin người đại diện đặt phòng" style={{ marginBottom: '2rem' }}>
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem', marginBottom: '1rem' }}>
+                <InputField
+                  id="checkout-name"
+                  label="Họ và tên"
+                  required
+                  value={guestName}
+                  onChange={e => setGuestName(e.target.value)}
+                />
+                <InputField
+                  id="checkout-phone"
+                  label="Số điện thoại"
+                  required
+                  value={guestPhone}
+                  onChange={e => setGuestPhone(e.target.value)}
+                />
+              </div>
+
+              <InputField
+                id="checkout-email"
+                type="email"
+                label="Email nhận phiếu xác nhận"
+                required
+                value={guestEmail}
+                onChange={e => setGuestEmail(e.target.value)}
+              />
+            </Card>
+
+            {/* Payment Method */}
+            <Card title="Phương thức thanh toán" style={{ marginBottom: '2rem' }}>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '0.85rem' }}>
+                <label
+                  style={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '1rem',
+                    padding: '1rem 1.25rem',
+                    border: paymentMethod === 'cod' ? '2px solid #222222' : '1px solid #E2E8F0',
+                    borderRadius: 14,
+                    cursor: 'pointer',
+                    background: paymentMethod === 'cod' ? '#F8FAFC' : '#ffffff',
+                    transition: 'border 0.2s ease',
+                  }}
+                >
+                  <input
+                    type="radio"
+                    name="pay"
+                    checked={paymentMethod === 'cod'}
+                    onChange={() => setPaymentMethod('cod')}
+                  />
+                  <CashCoin style={{ fontSize: '1.4rem', color: '#059669' }} />
+                  <div>
+                    <strong style={{ display: 'block', fontSize: '0.95rem', color: '#1E293B' }}>
+                      Thanh toán khi nhận phòng (COD)
+                    </strong>
+                    <span style={{ fontSize: '0.82rem', color: '#64748B' }}>
+                      Thanh toán trực tiếp cho chủ nhà khi bạn làm thủ tục nhận phòng.
+                    </span>
+                  </div>
                 </label>
-                <input
-                  id="quote-guests"
-                  type="number"
-                  min="1"
-                  max="10"
-                  value={guests}
-                  onChange={e => setGuests(e.target.value)}
-                  required
-                />
-              </div>
 
-              <div style={{ background: '#f0fdfa', border: '1px solid #ccfbf1', padding: '0.85rem 1rem', borderRadius: 8, marginTop: '0.75rem', display: 'flex', alignItems: 'center', gap: '0.6rem' }}>
-                <ShieldCheck className="text-brand" />
-                <span style={{ fontSize: '0.85rem', color: '#0f766e' }}>
-                  <strong>{room.name}:</strong> Sức chứa tối đa {room.capacity} khách. Tuân thủ quy tắc BR-02 bảo đảm an toàn nghỉ dưỡng.
-                </span>
-              </div>
-            </section>
-
-            <section className="panel">
-              <h2 style={{ fontSize: '1.2rem', marginTop: 0, display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-                <PersonFill className="text-brand" /> Thông tin người đại diện đặt phòng
-              </h2>
-
-              <div className="row">
-                <div className="field">
-                  <label htmlFor="guest-name">Họ và tên người đặt *</label>
+                <label
+                  style={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '1rem',
+                    padding: '1rem 1.25rem',
+                    border: paymentMethod === 'bank' ? '2px solid #222222' : '1px solid #E2E8F0',
+                    borderRadius: 14,
+                    cursor: 'pointer',
+                    background: paymentMethod === 'bank' ? '#F8FAFC' : '#ffffff',
+                    transition: 'border 0.2s ease',
+                  }}
+                >
                   <input
-                    id="guest-name"
-                    value={guestName}
-                    onChange={e => setGuestName(e.target.value)}
-                    required
+                    type="radio"
+                    name="pay"
+                    checked={paymentMethod === 'bank'}
+                    onChange={() => setPaymentMethod('bank')}
                   />
-                </div>
-                <div className="field">
-                  <label htmlFor="guest-phone">Số điện thoại liên hệ *</label>
-                  <input
-                    id="guest-phone"
-                    value={guestPhone}
-                    onChange={e => setGuestPhone(e.target.value)}
-                    required
-                  />
-                </div>
+                  <CreditCard style={{ fontSize: '1.4rem', color: '#E11D48' }} />
+                  <div>
+                    <strong style={{ display: 'block', fontSize: '0.95rem', color: '#1E293B' }}>
+                      Chuyển khoản qua mã QR (VietQR)
+                    </strong>
+                    <span style={{ fontSize: '0.82rem', color: '#64748B' }}>
+                      Chuyển khoản tức thì sau khi nhận được thông báo xác nhận từ chủ nhà.
+                    </span>
+                  </div>
+                </label>
               </div>
+            </Card>
 
-              <div className="field">
-                <label htmlFor="guest-email">Email nhận hóa đơn xác nhận *</label>
-                <input
-                  id="guest-email"
-                  type="email"
-                  value={guestEmail}
-                  onChange={e => setGuestEmail(e.target.value)}
-                  required
-                />
-              </div>
+            {/* Cancellation Policy */}
+            <Card title="Chính sách hủy phòng" style={{ marginBottom: '2rem' }}>
+              <p style={{ color: '#64748B', fontSize: '0.92rem', lineHeight: 1.6, margin: 0 }}>
+                Hủy miễn phí trước 48 giờ so với thời điểm nhận phòng. Sau thời gian này, việc hủy phòng sẽ tuân theo thỏa thuận trực tiếp cùng chủ nhà.
+              </p>
+            </Card>
 
-              <div className="field">
-                <label>Phương thức thanh toán</label>
-                <div style={{ display: 'flex', gap: '1rem', marginTop: '0.5rem' }}>
-                  <label style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', fontWeight: 500, cursor: 'pointer' }}>
-                    <input type="radio" name="payment" defaultChecked /> Thanh toán trực tiếp khi nhận phòng (COD)
-                  </label>
-                </div>
-              </div>
-            </section>
+            {/* Submit Button */}
+            <div>
+              <p style={{ fontSize: '0.8rem', color: '#64748B', lineHeight: 1.6, marginBottom: '1rem' }}>
+                Bằng cách chọn nút bên dưới, bạn đồng ý với Nội quy nhà của Chủ nhà, Các quy tắc nền tảng của ODauDay Stay và Điều khoản dịch vụ.
+              </p>
+              <Button
+                type="submit"
+                variant="primary"
+                size="lg"
+                disabled={!quote.success}
+                icon={<CalendarCheck />}
+              >
+                Xác nhận và đặt phòng
+              </Button>
+            </div>
           </div>
 
-          {/* Right Column: Price Breakdown Snapshot */}
+          {/* Right Column: Sticky Summary Card */}
           <aside>
-            <div className="panel" style={{ boxShadow: 'var(--shadow-lg)' }}>
-              <h3 style={{ fontSize: '1.15rem', marginTop: 0, marginBottom: '1rem', borderBottom: '1px solid var(--line)', paddingBottom: '0.75rem' }}>
-                Tóm tắt đơn đặt phòng
-              </h3>
-
-              <div style={{ display: 'flex', gap: '0.75rem', marginBottom: '1rem' }}>
-                <div
-                  style={{
-                    width: 70,
-                    height: 70,
-                    borderRadius: 8,
-                    backgroundImage: `url('${property.image}')`,
-                    backgroundSize: 'cover',
-                    backgroundPosition: 'center',
-                    flexShrink: 0,
-                  }}
-                />
-                <div>
-                  <strong style={{ display: 'block', fontSize: '0.98rem' }}>{property.name}</strong>
-                  <span className="muted" style={{ fontSize: '0.85rem' }}>
-                    {room.name}
-                  </span>
-                  <span className="muted" style={{ display: 'block', fontSize: '0.78rem' }}>
-                    {property.city}
-                  </span>
+            <div style={{ position: 'sticky', top: '6rem' }}>
+              <Card variant="elevated">
+                {/* Property summary */}
+                <div style={{ display: 'flex', gap: '1rem', borderBottom: '1px solid #E2E8F0', paddingBottom: '1.25rem', marginBottom: '1.25rem' }}>
+                  <img
+                    src={property.image}
+                    alt={property.name}
+                    style={{ width: 100, height: 90, borderRadius: 10, objectFit: 'cover' }}
+                  />
+                  <div>
+                    <span style={{ fontSize: '0.8rem', color: '#64748B', display: 'block' }}>
+                      {property.type} · {property.city}
+                    </span>
+                    <strong style={{ fontSize: '0.98rem', display: 'block', margin: '0.2rem 0', color: '#1E293B' }}>
+                      {property.name}
+                    </strong>
+                    <span style={{ fontSize: '0.85rem', color: '#475569' }}>
+                      Hạng phòng: {room.name}
+                    </span>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '0.25rem', fontSize: '0.82rem', marginTop: '0.25rem' }}>
+                      <StarFill style={{ fontSize: '0.75rem', color: '#E11D48' }} />
+                      <span style={{ fontWeight: 700 }}>{property.rating ? property.rating.toFixed(2) : '4.95'}</span>
+                      <span style={{ color: '#64748B' }}>(18 đánh giá)</span>
+                    </div>
+                  </div>
                 </div>
-              </div>
 
-              <table style={{ width: '100%', marginBottom: '1rem', fontSize: '0.9rem' }}>
-                <tbody>
-                  <tr>
-                    <td className="muted">Số đêm lưu trú:</td>
-                    <td style={{ textAlign: 'right', fontWeight: 600 }}>{quote.nights || 2} đêm</td>
-                  </tr>
-                  <tr>
-                    <td className="muted">Đơn giá / đêm:</td>
-                    <td style={{ textAlign: 'right' }}>{formatVND(room.price)}</td>
-                  </tr>
-                  <tr>
-                    <td className="muted">Tiền phòng:</td>
-                    <td style={{ textAlign: 'right' }}>{formatVND(quote.subtotal || room.price * 2)}</td>
-                  </tr>
-                  <tr>
-                    <td className="muted">Phí dịch vụ:</td>
-                    <td style={{ textAlign: 'right', color: '#059669' }}>0đ (Miễn phí)</td>
-                  </tr>
-                  <tr style={{ borderTop: '1px solid var(--line)', fontWeight: 800, fontSize: '1.1rem' }}>
-                    <td style={{ paddingTop: '0.75rem' }}>Tổng thanh toán:</td>
-                    <td style={{ textAlign: 'right', paddingTop: '0.75rem', color: 'var(--brand)' }}>
-                      {formatVND(quote.total || room.price * 2)}
-                    </td>
-                  </tr>
-                </tbody>
-              </table>
+                {/* AirCover Included */}
+                <div style={{ borderBottom: '1px solid #E2E8F0', paddingBottom: '1.25rem', marginBottom: '1.25rem' }}>
+                  <Badge variant="brand" dot icon={<ShieldCheck />}>
+                    Bảo đảm với ODauDay Cover
+                  </Badge>
+                </div>
 
-              <button
-                type="submit"
-                className="btn btn-primary btn-block"
-                disabled={!quote.success}
-                style={{ padding: '0.85rem', fontSize: '1rem', fontWeight: 700 }}
-              >
-                Xác nhận đặt phòng (TC-04)
-              </button>
-              <p className="muted" style={{ textAlign: 'center', fontSize: '0.75rem', marginTop: '0.75rem', marginBottom: 0 }}>
-                Bằng việc xác nhận, bạn đồng ý với chính sách lưu trú và quy tắc bảo đảm BR-05.
-              </p>
+                {/* Price Details */}
+                <h3 style={{ fontSize: '1.1rem', fontWeight: 700, margin: '0 0 1rem', color: '#1E293B' }}>Chi tiết giá</h3>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem', fontSize: '0.92rem' }}>
+                  <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+                    <span style={{ color: '#475569' }}>
+                      {formatVND(room.price)} × {quote.nights || 2} đêm
+                    </span>
+                    <span style={{ fontWeight: 600 }}>{formatVND(quote.subtotal || room.price * 2)}</span>
+                  </div>
+                  <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+                    <span style={{ color: '#475569' }}>Phí dịch vụ ODauDay Stay</span>
+                    <span style={{ color: '#059669', fontWeight: 600 }}>0₫ (Miễn phí)</span>
+                  </div>
+                  <div
+                    style={{
+                      display: 'flex',
+                      justifyContent: 'space-between',
+                      borderTop: '1px solid #E2E8F0',
+                      paddingTop: '0.85rem',
+                      fontWeight: 800,
+                      fontSize: '1.1rem',
+                    }}
+                  >
+                    <span>Tổng tiền (VND)</span>
+                    <span style={{ color: 'var(--airbnb-pink)' }}>{formatVND(quote.total || room.price * 2)}</span>
+                  </div>
+                </div>
+              </Card>
             </div>
           </aside>
         </div>
       </form>
-    </main>
+    </div>
   );
 }

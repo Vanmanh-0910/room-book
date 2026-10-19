@@ -1,8 +1,15 @@
-// UC-08: Host Bookings Management Page (TypeScript)
+// UC-08: Host Bookings Management Page (Standardized Components)
 import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { useStore } from '../../contexts/StoreContext';
-import { UCTag, Breadcrumb } from '../../components/UI';
+import {
+  Breadcrumb,
+  Button,
+  Card,
+  StatCard,
+  Tabs,
+  Badge,
+} from '../../components';
 import { formatVND, BADGE_CLASS, BADGE_LABEL } from '../../constants';
 import {
   CalendarCheck,
@@ -11,8 +18,6 @@ import {
   Eye,
   KeyFill,
   Check2All,
-  ShieldLockFill,
-  HourglassSplit,
 } from 'react-bootstrap-icons';
 import { Booking } from '../../data';
 
@@ -47,225 +52,166 @@ export default function HostBookingsPage() {
 
   return (
     <div style={{ maxWidth: 1200, margin: '1.5rem auto', padding: '0 1rem' }}>
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '0.75rem', marginBottom: '0.75rem' }}>
-        <Breadcrumb items={[{ label: 'Host Portal', to: '/host/properties' }, { label: 'Quản lý đơn đặt phòng' }]} />
-        <UCTag>
-          <CalendarCheck /> UC-08 · Xử lý &amp; Duyệt đơn
-        </UCTag>
-      </div>
+      <Breadcrumb
+        items={[
+          { label: 'Host Portal', to: '/host/properties' },
+          { label: 'Quản lý đơn đặt phòng' },
+        ]}
+      />
 
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end', flexWrap: 'wrap', gap: '1rem', marginBottom: '1.5rem' }}>
         <div>
-          <h1 className="page-title" style={{ margin: '0 0 0.35rem' }}>
+          <h1 style={{ fontSize: '1.85rem', fontWeight: 800, margin: '0 0 0.35rem', color: '#222222' }}>
             Quản lý &amp; Xử lý đơn đặt phòng
           </h1>
-          <p className="page-sub" style={{ margin: 0 }}>
+          <p style={{ margin: 0, color: '#717171', fontSize: '0.95rem' }}>
             Danh sách các yêu cầu lưu trú của khách thuộc các chỗ ở của chủ nhà (Tài khoản: <strong>host.demo</strong>).
           </p>
         </div>
-        <span className="badge badge-active" style={{ padding: '0.4rem 0.9rem', fontSize: '0.85rem' }}>
-          Tự động đồng bộ Realtime
-        </span>
+        <Badge variant="active">Tự động đồng bộ Realtime</Badge>
       </div>
 
-      {/* KPI Summary Cards */}
-      <div className="grid grid-3" style={{ marginBottom: '1.75rem' }}>
-        <div className="panel" style={{ borderLeft: '4px solid var(--warn)', padding: '1.25rem' }}>
-          <span className="muted" style={{ fontSize: '0.8rem', textTransform: 'uppercase', fontWeight: 700, letterSpacing: '0.04em' }}>
-            Yêu cầu chờ phê duyệt
-          </span>
-          <p style={{ fontSize: '1.85rem', fontWeight: 800, color: 'var(--warn)', margin: '0.25rem 0 0' }}>
-            {pendingCount} đơn
-          </p>
-          <span className="muted" style={{ fontSize: '0.8rem' }}>
-            Cần phản hồi trong 24h
-          </span>
-        </div>
-
-        <div className="panel" style={{ borderLeft: '4px solid var(--brand)', padding: '1.25rem' }}>
-          <span className="muted" style={{ fontSize: '0.8rem', textTransform: 'uppercase', fontWeight: 700, letterSpacing: '0.04em' }}>
-            Đơn đã xác nhận (Sắp tới)
-          </span>
-          <p style={{ fontSize: '1.85rem', fontWeight: 800, color: 'var(--brand)', margin: '0.25rem 0 0' }}>
-            {confirmedCount} đơn
-          </p>
-          <span className="muted" style={{ fontSize: '0.8rem' }}>
-            Chờ đón khách nhận phòng
-          </span>
-        </div>
-
-        <div className="panel" style={{ borderLeft: '4px solid var(--ok)', padding: '1.25rem' }}>
-          <span className="muted" style={{ fontSize: '0.8rem', textTransform: 'uppercase', fontWeight: 700, letterSpacing: '0.04em' }}>
-            Đơn lưu trú hoàn tất
-          </span>
-          <p style={{ fontSize: '1.85rem', fontWeight: 800, color: 'var(--ok)', margin: '0.25rem 0 0' }}>
-            {completedCount} đơn
-          </p>
-          <span className="muted" style={{ fontSize: '0.8rem' }}>
-            Đã ghi nhận doanh thu (BR-08)
-          </span>
-        </div>
+      {/* KPI Metric Cards */}
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: '1.25rem', marginBottom: '1.75rem' }}>
+        <StatCard
+          label="Yêu cầu chờ phê duyệt"
+          value={`${pendingCount} đơn`}
+          sublabel="Cần phản hồi trong 24h"
+          accent="warn"
+        />
+        <StatCard
+          label="Đơn đã xác nhận (Sắp tới)"
+          value={`${confirmedCount} đơn`}
+          sublabel="Chờ đón khách nhận phòng"
+          accent="brand"
+        />
+        <StatCard
+          label="Đơn lưu trú hoàn tất"
+          value={`${completedCount} đơn`}
+          sublabel="Đã ghi nhận doanh thu (BR-08)"
+          accent="ok"
+        />
       </div>
 
-      {/* Bookings Table Panel */}
-      <section className="panel">
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderBottom: '1px solid var(--line)', paddingBottom: '1rem', marginBottom: '1.25rem', flexWrap: 'wrap', gap: '0.75rem' }}>
-          <div style={{ display: 'flex', gap: '0.5rem', overflowX: 'auto' }}>
-            <button
-              type="button"
-              className={`badge ${activeTab === 'ALL' ? 'badge-active' : ''}`}
-              style={{
-                padding: '0.45rem 1rem',
-                fontSize: '0.85rem',
-                border: 'none',
-                cursor: 'pointer',
-                background: activeTab === 'ALL' ? 'var(--brand)' : '#f1f5f9',
-                color: activeTab === 'ALL' ? '#fff' : 'var(--ink-secondary)',
-              }}
-              onClick={() => setActiveTab('ALL')}
-            >
-              Tất cả đơn ({bookings.length})
-            </button>
-            <button
-              type="button"
-              className={`badge ${activeTab === 'PENDING' ? 'badge-active' : ''}`}
-              style={{
-                padding: '0.45rem 1rem',
-                fontSize: '0.85rem',
-                border: 'none',
-                cursor: 'pointer',
-                background: activeTab === 'PENDING' ? 'var(--brand)' : '#f1f5f9',
-                color: activeTab === 'PENDING' ? '#fff' : 'var(--ink-secondary)',
-              }}
-              onClick={() => setActiveTab('PENDING')}
-            >
-              Chờ duyệt ({pendingCount})
-            </button>
-            <button
-              type="button"
-              className={`badge ${activeTab === 'CONFIRMED' ? 'badge-active' : ''}`}
-              style={{
-                padding: '0.45rem 1rem',
-                fontSize: '0.85rem',
-                border: 'none',
-                cursor: 'pointer',
-                background: activeTab === 'CONFIRMED' ? 'var(--brand)' : '#f1f5f9',
-                color: activeTab === 'CONFIRMED' ? '#fff' : 'var(--ink-secondary)',
-              }}
-              onClick={() => setActiveTab('CONFIRMED')}
-            >
-              Đã xác nhận ({confirmedCount})
-            </button>
-            <button
-              type="button"
-              className={`badge ${activeTab === 'COMPLETED' ? 'badge-active' : ''}`}
-              style={{
-                padding: '0.45rem 1rem',
-                fontSize: '0.85rem',
-                border: 'none',
-                cursor: 'pointer',
-                background: activeTab === 'COMPLETED' ? 'var(--brand)' : '#f1f5f9',
-                color: activeTab === 'COMPLETED' ? '#fff' : 'var(--ink-secondary)',
-              }}
-              onClick={() => setActiveTab('COMPLETED')}
-            >
-              Hoàn tất ({completedCount})
-            </button>
+      {/* Bookings Card Container */}
+      <Card
+        variant="default"
+        padding="none"
+        title={
+          <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+            <CalendarCheck style={{ color: '#FF385C', fontSize: '1.2rem' }} />
+            <span>Danh sách đơn đặt phòng ({filteredBookings.length})</span>
           </div>
-          <span className="muted" style={{ fontSize: '0.82rem' }}>
-            <ShieldLockFill className="text-brand" /> Bảo mật truy cập dữ liệu chủ quyền (BR-06)
-          </span>
+        }
+      >
+        <div style={{ padding: '1rem 1.25rem 0.5rem', borderBottom: '1px solid #EBEBEB' }}>
+          <Tabs
+            variant="pills"
+            activeId={activeTab}
+            onChange={id => setActiveTab(id as any)}
+            items={[
+              { id: 'ALL', label: 'Tất cả đơn', count: bookings.length },
+              { id: 'PENDING', label: 'Chờ duyệt', count: pendingCount },
+              { id: 'CONFIRMED', label: 'Đã xác nhận', count: confirmedCount },
+              { id: 'COMPLETED', label: 'Hoàn tất', count: completedCount },
+            ]}
+          />
         </div>
 
         <div className="table-responsive">
           <table className="table table-hover align-middle mb-0" style={{ width: '100%' }}>
             <thead>
               <tr>
-                <th style={{ padding: '0.75rem' }}>Mã đơn</th>
-                <th style={{ padding: '0.75rem' }}>Khách đặt phòng</th>
-                <th style={{ padding: '0.75rem' }}>Hạng phòng</th>
-                <th style={{ padding: '0.75rem' }}>Thời gian lưu trú</th>
-                <th style={{ padding: '0.75rem' }}>Tổng tiền</th>
-                <th style={{ padding: '0.75rem' }}>Trạng thái</th>
-                <th style={{ textAlign: 'right', padding: '0.75rem' }}>Thao tác</th>
+                <th style={{ padding: '0.85rem 1rem' }}>Mã đơn</th>
+                <th style={{ padding: '0.85rem 1rem' }}>Khách đặt</th>
+                <th style={{ padding: '0.85rem 1rem' }}>Hạng phòng & Chỗ ở</th>
+                <th style={{ padding: '0.85rem 1rem' }}>Thời gian lưu trú</th>
+                <th style={{ padding: '0.85rem 1rem' }}>Tổng tiền</th>
+                <th style={{ padding: '0.85rem 1rem' }}>Trạng thái</th>
+                <th style={{ textAlign: 'right', padding: '0.85rem 1rem' }}>Thao tác</th>
               </tr>
             </thead>
             <tbody>
               {filteredBookings.map(b => (
                 <tr key={b.code}>
-                  <td style={{ padding: '0.75rem' }}>
-                    <strong style={{ fontFamily: 'monospace', color: 'var(--brand-dark)' }}>{b.code}</strong>
+                  <td style={{ padding: '0.85rem 1rem', fontFamily: 'monospace', fontWeight: 700, color: '#222222' }}>
+                    #{b.code}
                   </td>
-                  <td style={{ padding: '0.75rem' }}>
-                    <strong>{b.guestName}</strong>
-                    <span className="muted" style={{ display: 'block', fontSize: '0.78rem' }}>
+                  <td style={{ padding: '0.85rem 1rem' }}>
+                    <strong style={{ display: 'block', color: '#222222' }}>{b.guestName}</strong>
+                    <span style={{ fontSize: '0.78rem', color: '#717171' }}>
                       {b.guestPhone}
                     </span>
                   </td>
-                  <td style={{ padding: '0.75rem' }}>
-                    <strong>{b.roomName}</strong>
-                    <span className="muted" style={{ display: 'block', fontSize: '0.78rem' }}>
+                  <td style={{ padding: '0.85rem 1rem' }}>
+                    <strong style={{ display: 'block', color: '#222222' }}>{b.roomName}</strong>
+                    <span style={{ fontSize: '0.78rem', color: '#717171' }}>
                       {b.propertyName}
                     </span>
                   </td>
-                  <td style={{ padding: '0.75rem', fontSize: '0.88rem' }}>
+                  <td style={{ padding: '0.85rem 1rem', fontSize: '0.88rem' }}>
                     {b.checkIn} → {b.checkOut}
-                    <span className="muted" style={{ display: 'block', fontSize: '0.78rem' }}>
+                    <span style={{ display: 'block', fontSize: '0.78rem', color: '#717171' }}>
                       {b.nights} đêm · {b.guests} khách
                     </span>
                   </td>
-                  <td style={{ padding: '0.75rem', fontWeight: 700, color: 'var(--brand)' }}>
+                  <td style={{ padding: '0.85rem 1rem', fontWeight: 700, color: '#FF385C' }}>
                     {formatVND(b.total)}
                   </td>
-                  <td style={{ padding: '0.75rem' }}>
+                  <td style={{ padding: '0.85rem 1rem' }}>
                     <span className={`badge ${BADGE_CLASS[b.status] || 'badge-pending'}`}>
                       {BADGE_LABEL[b.status] || b.status}
                     </span>
                   </td>
-                  <td style={{ textAlign: 'right', padding: '0.75rem' }}>
-                    <div className="btn-group" style={{ justifyContent: 'flex-end' }}>
+                  <td style={{ textAlign: 'right', padding: '0.85rem 1rem' }}>
+                    <div style={{ display: 'inline-flex', gap: '0.35rem', justifyContent: 'flex-end', flexWrap: 'wrap' }}>
                       {b.status === 'PENDING' && (
                         <>
-                          <button
-                            type="button"
-                            className="btn btn-primary btn-xs"
+                          <Button
+                            variant="primary"
+                            size="xs"
+                            icon={<CheckLg />}
                             onClick={() => handleUpdateStatus(b.code, 'CONFIRMED')}
                           >
-                            <CheckLg /> Duyệt đơn
-                          </button>
-                          <button
-                            type="button"
-                            className="btn btn-outline btn-xs"
-                            style={{ color: '#dc2626' }}
+                            Duyệt đơn
+                          </Button>
+                          <Button
+                            variant="danger"
+                            size="xs"
+                            icon={<XCircle />}
                             onClick={() => handleUpdateStatus(b.code, 'REJECTED')}
                           >
-                            <XCircle /> Từ chối
-                          </button>
+                            Từ chối
+                          </Button>
                         </>
                       )}
 
                       {b.status === 'CONFIRMED' && (
-                        <button
-                          type="button"
-                          className="btn btn-outline btn-xs"
+                        <Button
+                          variant="outline"
+                          size="xs"
+                          icon={<KeyFill />}
                           onClick={() => handleUpdateStatus(b.code, 'CHECKED_IN')}
                         >
-                          <KeyFill /> Check-in
-                        </button>
+                          Check-in
+                        </Button>
                       )}
 
                       {b.status === 'CHECKED_IN' && (
-                        <button
-                          type="button"
-                          className="btn btn-primary btn-xs"
+                        <Button
+                          variant="primary"
+                          size="xs"
+                          icon={<Check2All />}
                           onClick={() => handleUpdateStatus(b.code, 'COMPLETED')}
                         >
-                          <Check2All /> Hoàn tất
-                        </button>
+                          Hoàn tất
+                        </Button>
                       )}
 
-                      <Link to={`/host/bookings/${b.code}`} className="btn btn-outline btn-xs">
-                        <Eye /> Chi tiết
+                      <Link to={`/host/bookings/${b.code}`}>
+                        <Button variant="outline" size="xs" icon={<Eye />}>
+                          Chi tiết
+                        </Button>
                       </Link>
                     </div>
                   </td>
@@ -274,7 +220,7 @@ export default function HostBookingsPage() {
             </tbody>
           </table>
         </div>
-      </section>
+      </Card>
     </div>
   );
 }

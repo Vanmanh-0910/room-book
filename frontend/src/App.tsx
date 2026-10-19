@@ -1,8 +1,7 @@
-// Root Component (TypeScript)
 import React from 'react';
 import { BrowserRouter } from 'react-router-dom';
 import { StoreProvider } from './contexts/StoreContext';
-import { Header, Footer, DemoBar, ToastContainer } from './components/Layout';
+import { Header, Footer, ToastContainer } from './components/Layout';
 import { AppRoutes } from './routers';
 
 export function App() {
@@ -10,7 +9,6 @@ export function App() {
     <BrowserRouter>
       <StoreProvider>
         <div className="app-shell" style={{ display: 'flex', flexDirection: 'column', minHeight: '100vh' }}>
-          <DemoBar />
           <Header />
           <div style={{ flex: 1 }}>
             <AppRoutes />

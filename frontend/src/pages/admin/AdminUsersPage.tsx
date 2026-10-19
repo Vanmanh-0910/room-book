@@ -1,7 +1,23 @@
-// UC-10: Admin User Management & RBAC Page (TypeScript)
+// UC-10: Admin User Management & RBAC Page (Standardized Components)
 import React, { useState } from 'react';
 import { useStore } from '../../contexts/StoreContext';
-import { UCTag, Breadcrumb } from '../../components/UI';
+import {
+  Breadcrumb,
+  Button,
+  Card,
+  InputField,
+  SelectField,
+  Modal,
+  StatCard,
+  Badge,
+  Table,
+  TableHead,
+  TableBody,
+  TableRow,
+  TableHeaderCell,
+  TableCell,
+  EmptyState,
+} from '../../components';
 import {
   PeopleFill,
   PersonPlusFill,
@@ -10,10 +26,8 @@ import {
   UnlockFill,
   ShieldCheck,
   Search,
-  PersonFill,
-  At,
-  KeyFill,
-  Telephone,
+  CheckCircleFill,
+  ExclamationOctagonFill,
 } from 'react-bootstrap-icons';
 import { User } from '../../data';
 
@@ -102,267 +116,249 @@ export default function AdminUsersPage() {
   });
 
   return (
-    <div style={{ maxWidth: 1200, margin: '1.5rem auto', padding: '0 1rem' }}>
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '0.75rem', marginBottom: '0.75rem' }}>
-        <Breadcrumb items={[{ label: 'Admin Console', to: '/admin/users' }, { label: 'Quản lý người dùng & RBAC' }]} />
-        <UCTag>
-          <PeopleFill /> UC-10 · Quản lý tài khoản &amp; RBAC
-        </UCTag>
-      </div>
+    <div style={{ maxWidth: 1240, margin: '2rem auto', padding: '0 1.5rem' }}>
+      <Breadcrumb
+        items={[
+          { label: 'Admin Console', to: '/admin/users' },
+          { label: 'Quản lý tài khoản & RBAC' },
+        ]}
+      />
 
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end', flexWrap: 'wrap', gap: '1rem', marginBottom: '1.5rem' }}>
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end', flexWrap: 'wrap', gap: '1rem', margin: '1rem 0 2rem' }}>
         <div>
-          <h1 className="page-title" style={{ margin: '0 0 0.35rem' }}>
+          <h1 style={{ fontSize: '1.85rem', fontWeight: 800, margin: '0 0 0.35rem', color: '#1E293B' }}>
             Quản lý tài khoản &amp; Phân quyền RBAC
           </h1>
-          <p className="page-sub" style={{ margin: 0 }}>
-            Kiểm soát tài khoản, thay đổi quyền hạn và khóa người dùng vi phạm. Bảo đảm quy tắc ASSUM-01.
+          <p style={{ margin: 0, color: '#64748B', fontSize: '0.95rem' }}>
+            Kiểm soát tài khoản, thay đổi quyền hạn và khóa người dùng vi phạm. Bảo đảm quy tắc an toàn ASSUM-01.
           </p>
         </div>
-        <button type="button" className="btn btn-primary" onClick={() => setShowAddForm(true)}>
-          <PersonPlusFill /> Tạo tài khoản nội bộ
-        </button>
+        <Button variant="primary" icon={<PersonPlusFill />} onClick={() => setShowAddForm(true)}>
+          Tạo tài khoản nội bộ
+        </Button>
       </div>
 
-      {/* KPI Metric Cards */}
-      <div className="grid grid-3" style={{ marginBottom: '1.75rem' }}>
-        <div className="panel" style={{ borderLeft: '4px solid var(--brand)', padding: '1.25rem' }}>
-          <span className="muted" style={{ fontSize: '0.8rem', textTransform: 'uppercase', fontWeight: 700, letterSpacing: '0.04em' }}>
-            Tổng số tài khoản
-          </span>
-          <p style={{ fontSize: '1.85rem', fontWeight: 800, color: 'var(--ink)', margin: '0.25rem 0 0' }}>
-            {users.length} tài khoản
-          </p>
-          <span className="muted" style={{ fontSize: '0.8rem' }}>
-            Toàn bộ thành viên trong CSDL
-          </span>
-        </div>
-
-        <div className="panel" style={{ borderLeft: '4px solid var(--ok)', padding: '1.25rem' }}>
-          <span className="muted" style={{ fontSize: '0.8rem', textTransform: 'uppercase', fontWeight: 700, letterSpacing: '0.04em' }}>
-            Đang hoạt động bình thường
-          </span>
-          <p style={{ fontSize: '1.85rem', fontWeight: 800, color: 'var(--ok)', margin: '0.25rem 0 0' }}>
-            {activeCount} tài khoản
-          </p>
-          <span className="muted" style={{ fontSize: '0.8rem' }}>
-            Trạng thái ACTIVE
-          </span>
-        </div>
-
-        <div className="panel" style={{ borderLeft: '4px solid var(--danger)', padding: '1.25rem' }}>
-          <span className="muted" style={{ fontSize: '0.8rem', textTransform: 'uppercase', fontWeight: 700, letterSpacing: '0.04em' }}>
-            Đang bị khóa truy cập (LOCKED)
-          </span>
-          <p style={{ fontSize: '1.85rem', fontWeight: 800, color: 'var(--danger)', margin: '0.25rem 0 0' }}>
-            {lockedCount} tài khoản
-          </p>
-          <span className="muted" style={{ fontSize: '0.8rem' }}>
-            Tài khoản vi phạm quy chuẩn
-          </span>
-        </div>
+      {/* Standard KPI Metric Cards */}
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(260px, 1fr))', gap: '1.25rem', marginBottom: '2rem' }}>
+        <StatCard
+          label="Tổng số tài khoản"
+          value={`${users.length} tài khoản`}
+          sublabel="Toàn bộ thành viên trong CSDL"
+          accent="brand"
+          icon={<PeopleFill />}
+        />
+        <StatCard
+          label="Đang hoạt động bình thường"
+          value={`${activeCount} tài khoản`}
+          sublabel="Trạng thái ACTIVE"
+          accent="ok"
+          icon={<CheckCircleFill />}
+        />
+        <StatCard
+          label="Đang bị khóa truy cập"
+          value={`${lockedCount} tài khoản`}
+          sublabel="Tài khoản vi phạm quy chuẩn (LOCKED)"
+          accent="danger"
+          icon={<ExclamationOctagonFill />}
+        />
       </div>
 
-      {/* Add User Modal / Form */}
-      {showAddForm && (
-        <section className="panel" style={{ marginBottom: '1.5rem', border: '2px solid var(--brand)' }}>
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1rem' }}>
-            <h2 style={{ margin: 0, fontSize: '1.2rem' }}>Thêm tài khoản người dùng mới</h2>
-            <button type="button" className="btn btn-outline btn-xs" onClick={() => setShowAddForm(false)}>
-              Đóng form
-            </button>
-          </div>
-
-          <form onSubmit={handleAddUser}>
-            <div className="row">
-              <div className="field">
-                <label>Họ và tên *</label>
-                <input
-                  value={newFullName}
-                  onChange={e => setNewFullName(e.target.value)}
-                  placeholder="Ví dụ: Hoàng Đức Minh"
-                  required
-                />
-              </div>
-              <div className="field">
-                <label>Tên đăng nhập *</label>
-                <input
-                  value={newUsername}
-                  onChange={e => setNewUsername(e.target.value)}
-                  placeholder="Ví dụ: minh.hoang"
-                  required
-                />
-              </div>
-            </div>
-
-            <div className="row">
-              <div className="field">
-                <label>Số điện thoại *</label>
-                <input
-                  value={newPhone}
-                  onChange={e => setNewPhone(e.target.value)}
-                  placeholder="0912345678"
-                  required
-                />
-              </div>
-              <div className="field">
-                <label>Email liên hệ *</label>
-                <input
-                  type="email"
-                  value={newEmail}
-                  onChange={e => setNewEmail(e.target.value)}
-                  placeholder="minh@odauday.vn"
-                  required
-                />
-              </div>
-            </div>
-
-            <div className="row">
-              <div className="field">
-                <label>Mật khẩu ban đầu</label>
-                <input
-                  type="password"
-                  value={newPassword}
-                  onChange={e => setNewPassword(e.target.value)}
-                  required
-                />
-              </div>
-              <div className="field">
-                <label>Phân quyền (RBAC) *</label>
-                <select value={newRole} onChange={e => setNewRole(e.target.value as any)}>
-                  <option value="GUEST">GUEST (Khách thuê homestay)</option>
-                  <option value="HOST">HOST (Đối tác chủ nhà)</option>
-                  <option value="ADMIN">ADMIN (Quản trị viên hệ thống)</option>
-                </select>
-              </div>
-            </div>
-
-            <div style={{ display: 'flex', gap: '0.75rem', marginTop: '1rem' }}>
-              <button type="submit" className="btn btn-primary">
-                Tạo tài khoản
-              </button>
-              <button type="button" className="btn btn-outline" onClick={() => setShowAddForm(false)}>
-                Hủy
-              </button>
-            </div>
-          </form>
-        </section>
-      )}
-
-      {/* Filter Controls Panel */}
-      <section className="panel" style={{ marginBottom: '1.5rem' }}>
-        <div className="row-3" style={{ alignItems: 'end' }}>
-          <div className="field">
-            <label htmlFor="user-kw">
-              <Search /> Tìm theo họ tên / username / email
-            </label>
-            <input
-              id="user-kw"
-              value={kw}
-              onChange={e => setKw(e.target.value)}
-              placeholder="admin, host.demo, guest.demo..."
-            />
-          </div>
-          <div className="field">
-            <label htmlFor="user-role">
-              <ShieldLock /> Lọc theo vai trò (Role)
-            </label>
-            <select id="user-role" value={roleFilter} onChange={e => setRoleFilter(e.target.value)}>
-              <option value="ALL">Tất cả vai trò</option>
-              <option value="ADMIN">ADMIN (Quản trị viên)</option>
-              <option value="HOST">HOST (Chủ nhà)</option>
-              <option value="GUEST">GUEST (Khách thuê)</option>
-            </select>
-          </div>
-          <div className="field">
-            <label htmlFor="user-status">Trạng thái hoạt động</label>
-            <select id="user-status" value={statusFilter} onChange={e => setStatusFilter(e.target.value)}>
-              <option value="ALL">Tất cả trạng thái</option>
-              <option value="ACTIVE">ACTIVE (Đang hoạt động)</option>
-              <option value="LOCKED">LOCKED (Đang bị khóa)</option>
-            </select>
-          </div>
+      {/* Filter Controls Card */}
+      <Card style={{ marginBottom: '2rem' }}>
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: '1rem', alignItems: 'flex-end' }}>
+          <InputField
+            label="Tìm kiếm người dùng"
+            id="user-kw"
+            icon={<Search />}
+            value={kw}
+            onChange={e => setKw(e.target.value)}
+            placeholder="Tìm theo họ tên, username, email..."
+          />
+          <SelectField
+            label="Phân quyền (Role)"
+            id="user-role"
+            icon={<ShieldLock />}
+            value={roleFilter}
+            onChange={e => setRoleFilter(e.target.value)}
+            options={[
+              { value: 'ALL', label: 'Tất cả vai trò' },
+              { value: 'ADMIN', label: 'ADMIN (Quản trị viên)' },
+              { value: 'HOST', label: 'HOST (Đối tác chủ nhà)' },
+              { value: 'GUEST', label: 'GUEST (Khách lưu trú)' },
+            ]}
+          />
+          <SelectField
+            label="Trạng thái hoạt động"
+            id="user-status"
+            value={statusFilter}
+            onChange={e => setStatusFilter(e.target.value)}
+            options={[
+              { value: 'ALL', label: 'Tất cả trạng thái' },
+              { value: 'ACTIVE', label: 'ACTIVE (Đang hoạt động)' },
+              { value: 'LOCKED', label: 'LOCKED (Đang bị khóa)' },
+            ]}
+          />
         </div>
-      </section>
+      </Card>
 
-      {/* Users Table Panel */}
-      <section className="panel">
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1rem', borderBottom: '1px solid var(--line)', paddingBottom: '0.75rem' }}>
-          <h2 style={{ margin: 0, fontSize: '1.2rem' }}>
-            <PeopleFill className="text-brand" /> Danh sách người dùng ({filteredUsers.length})
-          </h2>
-          <span className="badge badge-active">
-            <ShieldCheck /> Chuẩn RBAC
-          </span>
-        </div>
-
-        <div className="table-responsive">
-          <table className="table table-hover align-middle mb-0" style={{ width: '100%' }}>
-            <thead>
-              <tr>
-                <th style={{ padding: '0.75rem' }}>Thành viên</th>
-                <th style={{ padding: '0.75rem' }}>Tên đăng nhập</th>
-                <th style={{ padding: '0.75rem' }}>Số điện thoại</th>
-                <th style={{ padding: '0.75rem' }}>Vai trò RBAC</th>
-                <th style={{ padding: '0.75rem' }}>Trạng thái</th>
-                <th style={{ textAlign: 'right', padding: '0.75rem' }}>Thao tác</th>
-              </tr>
-            </thead>
-            <tbody>
+      {/* Standard Table Card */}
+      <Card
+        title={`Danh sách người dùng (${filteredUsers.length})`}
+        headerRight={
+          <Badge variant="success" dot icon={<ShieldCheck />}>
+            Chuẩn RBAC
+          </Badge>
+        }
+      >
+        {filteredUsers.length === 0 ? (
+          <EmptyState
+            compact
+            icon={<PeopleFill />}
+            title="Không tìm thấy người dùng phù hợp"
+            description="Hãy thử thay đổi từ khóa hoặc bộ lọc trạng thái để xem thêm kết quả."
+          />
+        ) : (
+          <Table hover>
+            <TableHead>
+              <TableRow>
+                <TableHeaderCell>Thành viên</TableHeaderCell>
+                <TableHeaderCell>Tên đăng nhập</TableHeaderCell>
+                <TableHeaderCell>Số điện thoại</TableHeaderCell>
+                <TableHeaderCell>Vai trò RBAC</TableHeaderCell>
+                <TableHeaderCell>Trạng thái</TableHeaderCell>
+                <TableHeaderCell align="right">Thao tác</TableHeaderCell>
+              </TableRow>
+            </TableHead>
+            <TableBody>
               {filteredUsers.map(u => (
-                <tr key={u.id}>
-                  <td style={{ padding: '0.75rem' }}>
-                    <strong>{u.fullName}</strong>
-                    <span className="muted" style={{ display: 'block', fontSize: '0.78rem' }}>
-                      {u.email}
-                    </span>
-                  </td>
-                  <td style={{ padding: '0.75rem' }}>
-                    <code style={{ fontSize: '0.9rem' }}>{u.username}</code>
-                  </td>
-                  <td style={{ padding: '0.75rem', fontSize: '0.88rem' }}>{u.phone}</td>
-                  <td style={{ padding: '0.75rem' }}>
+                <TableRow key={u.id}>
+                  <TableCell>
+                    <strong style={{ display: 'block', color: '#1E293B' }}>{u.fullName}</strong>
+                    <span style={{ fontSize: '0.8rem', color: '#64748B' }}>{u.email}</span>
+                  </TableCell>
+                  <TableCell>
+                    <code style={{ background: '#F1F5F9', padding: '2px 6px', borderRadius: 4, fontSize: '0.88rem' }}>
+                      {u.username}
+                    </code>
+                  </TableCell>
+                  <TableCell>{u.phone}</TableCell>
+                  <TableCell>
                     <select
                       value={u.role}
                       onChange={e => handleChangeRole(u, e.target.value as any)}
-                      style={{ fontSize: '0.85rem', padding: '0.3rem 0.5rem', fontWeight: 600 }}
+                      style={{
+                        padding: '0.35rem 0.65rem',
+                        fontSize: '0.85rem',
+                        fontWeight: 600,
+                        borderRadius: 6,
+                        border: '1px solid #CBD5E1',
+                        background: '#ffffff',
+                      }}
                     >
                       <option value="ADMIN">ADMIN</option>
                       <option value="HOST">HOST</option>
                       <option value="GUEST">GUEST</option>
                     </select>
-                  </td>
-                  <td style={{ padding: '0.75rem' }}>
-                    <span className={`badge ${u.status === 'ACTIVE' ? 'badge-active' : 'badge-cancelled'}`}>
+                  </TableCell>
+                  <TableCell>
+                    <Badge variant={u.status === 'ACTIVE' ? 'active' : 'danger'} dot>
                       {u.status}
-                    </span>
-                  </td>
-                  <td style={{ textAlign: 'right', padding: '0.75rem' }}>
-                    <div className="btn-group" style={{ justifyContent: 'flex-end' }}>
-                      <button
-                        type="button"
-                        className={`btn btn-xs ${u.status === 'ACTIVE' ? 'btn-outline' : 'btn-primary'}`}
-                        style={u.status === 'ACTIVE' ? { color: '#dc2626', borderColor: '#fca5a5' } : {}}
-                        onClick={() => handleToggleStatus(u)}
-                      >
-                        {u.status === 'ACTIVE' ? (
-                          <>
-                            <LockFill /> Khóa tài khoản
-                          </>
-                        ) : (
-                          <>
-                            <UnlockFill /> Mở khóa
-                          </>
-                        )}
-                      </button>
-                    </div>
-                  </td>
-                </tr>
+                    </Badge>
+                  </TableCell>
+                  <TableCell align="right">
+                    <Button
+                      size="xs"
+                      variant={u.status === 'ACTIVE' ? 'outline' : 'primary'}
+                      icon={u.status === 'ACTIVE' ? <LockFill /> : <UnlockFill />}
+                      style={u.status === 'ACTIVE' ? { color: '#DC2626', borderColor: '#FECACA' } : {}}
+                      onClick={() => handleToggleStatus(u)}
+                    >
+                      {u.status === 'ACTIVE' ? 'Khóa tài khoản' : 'Mở khóa'}
+                    </Button>
+                  </TableCell>
+                </TableRow>
               ))}
-            </tbody>
-          </table>
-        </div>
-      </section>
+            </TableBody>
+          </Table>
+        )}
+      </Card>
+
+      {/* Standard Modal for Add User */}
+      <Modal
+        isOpen={showAddForm}
+        onClose={() => setShowAddForm(false)}
+        title="Thêm tài khoản người dùng mới"
+        subtitle="Khởi tạo tài khoản nội bộ và thiết lập quyền truy cập hệ thống"
+        size="md"
+        footer={
+          <div style={{ display: 'flex', gap: '0.75rem', justifyContent: 'flex-end', width: '100%' }}>
+            <Button variant="outline" onClick={() => setShowAddForm(false)}>
+              Hủy
+            </Button>
+            <Button variant="primary" onClick={handleAddUser as any}>
+              Tạo tài khoản
+            </Button>
+          </div>
+        }
+      >
+        <form onSubmit={handleAddUser}>
+          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem', marginBottom: '1rem' }}>
+            <InputField
+              label="Họ và tên"
+              required
+              value={newFullName}
+              onChange={e => setNewFullName(e.target.value)}
+              placeholder="Ví dụ: Hoàng Đức Minh"
+            />
+            <InputField
+              label="Tên đăng nhập"
+              required
+              value={newUsername}
+              onChange={e => setNewUsername(e.target.value)}
+              placeholder="Ví dụ: minh.hoang"
+            />
+          </div>
+
+          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem', marginBottom: '1rem' }}>
+            <InputField
+              label="Số điện thoại"
+              required
+              value={newPhone}
+              onChange={e => setNewPhone(e.target.value)}
+              placeholder="0912345678"
+            />
+            <InputField
+              label="Email liên hệ"
+              type="email"
+              required
+              value={newEmail}
+              onChange={e => setNewEmail(e.target.value)}
+              placeholder="minh@odauday.vn"
+            />
+          </div>
+
+          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
+            <InputField
+              label="Mật khẩu ban đầu"
+              type="password"
+              required
+              value={newPassword}
+              onChange={e => setNewPassword(e.target.value)}
+            />
+            <SelectField
+              label="Phân quyền (RBAC)"
+              required
+              value={newRole}
+              onChange={e => setNewRole(e.target.value as any)}
+              options={[
+                { value: 'GUEST', label: 'GUEST (Khách thuê homestay)' },
+                { value: 'HOST', label: 'HOST (Đối tác chủ nhà)' },
+                { value: 'ADMIN', label: 'ADMIN (Quản trị viên hệ thống)' },
+              ]}
+            />
+          </div>
+        </form>
+      </Modal>
     </div>
   );
 }

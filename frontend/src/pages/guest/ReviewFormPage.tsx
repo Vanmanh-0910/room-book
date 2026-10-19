@@ -1,15 +1,12 @@
-// UC-05: Review Form Page (TypeScript)
+// Airbnb-Inspired Review Form Page (TypeScript)
 import React, { useState } from 'react';
 import { useSearchParams, useNavigate, Link } from 'react-router-dom';
 import { useStore } from '../../contexts/StoreContext';
-import { UCTag, Breadcrumb, Alert } from '../../components/UI';
+import { Breadcrumb } from '../../components/UI';
 import {
-  ChatQuoteFill,
   StarFill,
-  ShieldCheck,
-  SendCheck,
   CheckCircleFill,
-  ClockHistory,
+  ShieldCheck,
 } from 'react-bootstrap-icons';
 
 export default function ReviewFormPage() {
@@ -21,21 +18,14 @@ export default function ReviewFormPage() {
   const booking = store.getBooking(bookingCode) || store.getAllBookings()[0];
 
   const [rating, setRating] = useState('5');
-  const [comment, setComment] = useState('Phòng sạch sẽ, view vườn thoáng mát và chủ nhà hỗ trợ check-in rất nhiệt tình!');
-  const [testScenario, setTestScenario] = useState<'tc11' | 'tc12'>(booking?.isReviewed ? 'tc12' : 'tc11');
-
-  const handleScenarioChange = (scenario: 'tc11' | 'tc12') => {
-    setTestScenario(scenario);
-    if (scenario === 'tc12') {
-      addToast('Mô phỏng TC-12: Đơn đã gửi đánh giá trước đó', 'info');
-    }
-  };
+  const [comment, setComment] = useState('Phòng sạch sẽ, view thoáng đãng và chủ nhà hỗ trợ đón tiếp rất nhiệt tình!');
+  const [isSubmitted, setIsSubmitted] = useState(booking?.isReviewed || false);
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
 
-    if (testScenario === 'tc12' || booking?.isReviewed) {
-      addToast('Từ chối gửi: Đơn này đã được đánh giá trước đó (TC-12)!', 'error');
+    if (booking?.isReviewed || isSubmitted) {
+      addToast('Chuyến đi này đã được gửi đánh giá trước đó.', 'error');
       return;
     }
 
@@ -43,146 +33,184 @@ export default function ReviewFormPage() {
       bookingCode,
       propertyId: booking?.propertyId || 1,
       guestUsername: currentUser?.username || 'guest.demo',
-      guestName: currentUser?.fullName || 'Khách thuê Demo',
+      guestName: currentUser?.fullName || 'Khách thuê',
       rating: Number(rating),
       comment,
     });
 
     if (res.success) {
-      addToast('Cảm ơn bạn! Đánh giá đã được đăng công khai (TC-11).', 'success');
-      setTestScenario('tc12');
+      addToast('Cảm ơn bạn! Đánh giá đã được gửi thành công.', 'success');
+      setIsSubmitted(true);
     } else {
       addToast(res.message || 'Lỗi khi gửi đánh giá', 'error');
     }
   };
 
   return (
-    <div style={{ maxWidth: 840, margin: '1.5rem auto', padding: '0 1rem' }}>
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '0.75rem', marginBottom: '0.75rem' }}>
-        <Breadcrumb
-          items={[
-            { label: 'Trang chủ', to: '/' },
-            { label: 'Đơn của tôi', to: '/my-bookings' },
-            { label: `Đánh giá đơn #${bookingCode}` },
-          ]}
-        />
-        <UCTag>
-          <ChatQuoteFill /> UC-05 · Đánh giá kỳ lưu trú
-        </UCTag>
-      </div>
+    <div style={{ maxWidth: 720, margin: '2rem auto 5rem', padding: '0 1.5rem' }}>
+      <Breadcrumb
+        items={[
+          { label: 'Trang chủ', to: '/' },
+          { label: 'Chuyến đi', to: '/my-bookings' },
+          { label: `Đánh giá #${bookingCode}` },
+        ]}
+      />
 
-      <h1 className="page-title" style={{ marginBottom: '0.4rem' }}>
-        Đánh giá &amp; Chia sẻ trải nghiệm lưu trú
-      </h1>
-      <p className="page-sub" style={{ marginBottom: '1.25rem' }}>
-        Khách thuê chỉ được đánh giá các đơn đã hoàn thành thực tế (<code>COMPLETED</code>), mỗi đơn gửi tối đa một lần để
-        bảo đảm tính khách quan (quy tắc BR-07).
-      </p>
+      {!isSubmitted ? (
+        <div
+          style={{
+            border: '1px solid var(--line-strong)',
+            borderRadius: 'var(--radius-lg)',
+            boxShadow: 'var(--shadow-card)',
+            background: '#ffffff',
+            padding: '2.5rem 2rem',
+          }}
+        >
+          <h1 style={{ fontSize: '1.75rem', fontWeight: 800, margin: '0 0 0.5rem', color: 'var(--ink)' }}>
+            Kỳ nghỉ của bạn như thế nào?
+          </h1>
+          <p style={{ margin: '0 0 1.5rem', color: 'var(--ink-secondary)', fontSize: '0.95rem' }}>
+            Chia sẻ trải nghiệm lưu trú tại <strong>{booking?.propertyName || 'ODauDay Stay'}</strong> để giúp chủ nhà hoàn thiện và hỗ trợ các du khách khác.
+          </p>
 
-      {/* State Switcher */}
-      <div
-        style={{
-          background: '#ffffff',
-          border: '1px solid var(--line)',
-          borderRadius: 'var(--radius)',
-          padding: '0.85rem 1.25rem',
-          marginBottom: '1.5rem',
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'space-between',
-          flexWrap: 'wrap',
-          gap: '0.75rem',
-          boxShadow: 'var(--shadow-xs)',
-        }}
-      >
-        <span style={{ fontSize: '0.88rem', fontWeight: 600, color: 'var(--ink-secondary)' }}>
-          Chọn kịch bản kiểm thử:
-        </span>
-        <div className="btn-group">
-          <button
-            type="button"
-            className={`btn btn-sm ${testScenario === 'tc11' ? 'btn-primary' : 'btn-outline'}`}
-            onClick={() => handleScenarioChange('tc11')}
-          >
-            Chưa đánh giá (TC-11)
-          </button>
-          <button
-            type="button"
-            className={`btn btn-sm ${testScenario === 'tc12' ? 'btn-primary' : 'btn-outline'}`}
-            onClick={() => handleScenarioChange('tc12')}
-          >
-            Đã gửi đánh giá trước đó (TC-12)
-          </button>
-        </div>
-      </div>
-
-      {testScenario === 'tc11' ? (
-        <section className="panel" style={{ boxShadow: 'var(--shadow-md)' }}>
-          <Alert type="info" title={`Đơn #${bookingCode} · Trạng thái COMPLETED`}>
-            <p style={{ margin: '0.25rem 0 0', fontSize: '0.88rem' }}>
-              Kỳ nghỉ của bạn tại <strong>{booking?.propertyName || 'ODauDay Stay Hồ Tây'}</strong> đã kết thúc tốt đẹp.
-              Bạn có quyền gửi 01 đánh giá công khai kèm số sao để giúp cộng đồng du khách có góc nhìn chân thực.
-            </p>
-          </Alert>
-
-          <form onSubmit={handleSubmit} style={{ marginTop: '1.25rem' }}>
-            <div className="field">
-              <label htmlFor="review-rating">
-                <StarFill className="text-brand" /> Mức độ hài lòng chung (1 – 5 sao) *
+          <form onSubmit={handleSubmit}>
+            <div style={{ marginBottom: '1.5rem' }}>
+              <label htmlFor="review-stars" style={{ display: 'block', fontSize: '0.85rem', fontWeight: 700, marginBottom: '0.5rem' }}>
+                Đánh giá tổng quan
               </label>
               <select
-                id="review-rating"
+                id="review-stars"
                 value={rating}
                 onChange={e => setRating(e.target.value)}
-                style={{ fontWeight: 600, fontSize: '0.95rem' }}
+                style={{
+                  width: '100%',
+                  padding: '0.75rem 1rem',
+                  borderRadius: 'var(--radius-md)',
+                  border: '1px solid var(--line-strong)',
+                  fontSize: '0.95rem',
+                  fontWeight: 600,
+                  cursor: 'pointer',
+                }}
               >
-                <option value="5">★★★★★ 5 sao — Rất hài lòng, dịch vụ và phòng nghỉ tuyệt vời</option>
-                <option value="4">★★★★☆ 4 sao — Hài lòng, chỗ ở sạch sẽ và tiện nghi</option>
-                <option value="3">★★★☆☆ 3 sao — Bình thường, đạt yêu cầu cơ bản</option>
+                <option value="5">★★★★★ 5 sao — Rất tuyệt vời, vượt trên mong đợi</option>
+                <option value="4">★★★★☆ 4 sao — Hài lòng, phòng sạch và tiện nghi</option>
+                <option value="3">★★★☆☆ 3 sao — Bình thường, đáp ứng nhu cầu cơ bản</option>
                 <option value="2">★★☆☆☆ 2 sao — Chưa hài lòng, cần cải thiện</option>
-                <option value="1">★☆☆☆☆ 1 sao — Trải nghiệm rất thất vọng</option>
+                <option value="1">★☆☆☆☆ 1 sao — Trải nghiệm thất vọng</option>
               </select>
             </div>
 
-            <div className="field">
-              <label htmlFor="review-cmt">
-                <ChatQuoteFill className="text-brand" /> Cảm nhận &amp; Góp ý chi tiết cho chủ nhà *
+            <div style={{ marginBottom: '1.5rem' }}>
+              <label htmlFor="review-text" style={{ display: 'block', fontSize: '0.85rem', fontWeight: 700, marginBottom: '0.5rem' }}>
+                Cảm nhận chi tiết
               </label>
               <textarea
-                id="review-cmt"
+                id="review-text"
                 value={comment}
                 onChange={e => setComment(e.target.value)}
                 rows={4}
                 required
+                placeholder="Chia sẻ về không gian, sự sạch sẽ, vị trí và sự hỗ trợ từ chủ nhà..."
+                style={{
+                  width: '100%',
+                  padding: '0.85rem 1rem',
+                  borderRadius: 'var(--radius-md)',
+                  border: '1px solid var(--line-strong)',
+                  fontSize: '0.95rem',
+                  lineHeight: 1.6,
+                  resize: 'vertical',
+                }}
               />
             </div>
 
-            <div style={{ background: '#f0fdfa', border: '1px solid #ccfbf1', borderRadius: 8, padding: '0.75rem 1rem', fontSize: '0.82rem', color: '#0f766e', marginBottom: '1.25rem' }}>
-              <ShieldCheck /> Đánh giá sau khi gửi sẽ được gắn nhãn <strong>Khách thuê xác thực (Verified Stay)</strong> và hiển thị công khai trên trang chi tiết chỗ ở.
+            <div
+              style={{
+                display: 'flex',
+                alignItems: 'center',
+                gap: '0.5rem',
+                fontSize: '0.82rem',
+                color: 'var(--ink-secondary)',
+                marginBottom: '1.5rem',
+              }}
+            >
+              <ShieldCheck style={{ fontSize: '1.1rem', color: '#059669', flexShrink: 0 }} />
+              <span>Đánh giá được xác thực sau kỳ nghỉ thực tế để bảo đảm sự chân thực và uy tín.</span>
             </div>
 
-            <button type="submit" className="btn btn-primary btn-block" style={{ padding: '0.85rem', fontSize: '1rem' }}>
-              <SendCheck /> Gửi đánh giá công khai (TC-11)
+            <button
+              type="submit"
+              className="btn btn-primary"
+              style={{
+                padding: '0.9rem 2rem',
+                fontSize: '1rem',
+                fontWeight: 700,
+                borderRadius: 'var(--radius-md)',
+              }}
+            >
+              Gửi đánh giá
             </button>
           </form>
-        </section>
+        </div>
       ) : (
-        <section className="panel" style={{ boxShadow: 'var(--shadow-md)', textAlign: 'center', padding: '3rem 2rem' }}>
-          <CheckCircleFill style={{ fontSize: '3rem', color: 'var(--ok)', marginBottom: '1rem' }} />
-          <h2 style={{ fontSize: '1.35rem', marginBottom: '0.5rem' }}>Đơn này đã được gửi đánh giá trước đó (TC-12)</h2>
-          <p className="muted" style={{ maxWidth: 520, margin: '0 auto 1.5rem', lineHeight: 1.6 }}>
-            Theo quy tắc bảo đảm tính khách quan BR-07: Mỗi đơn đặt phòng hoàn tất chỉ được gửi đánh giá đúng 01 lần duy
-            nhất nhằm bảo vệ uy tín dữ liệu.
+        <div
+          style={{
+            border: '1px solid var(--line-strong)',
+            borderRadius: 'var(--radius-lg)',
+            boxShadow: 'var(--shadow-card)',
+            background: '#ffffff',
+            padding: '3rem 2rem',
+            textAlign: 'center',
+          }}
+        >
+          <div
+            style={{
+              width: 64,
+              height: 64,
+              borderRadius: 'var(--radius-full)',
+              background: '#ecfdf5',
+              color: '#059669',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              fontSize: '2rem',
+              margin: '0 auto 1.25rem',
+            }}
+          >
+            <CheckCircleFill />
+          </div>
+          <h2 style={{ fontSize: '1.5rem', fontWeight: 800, margin: '0 0 0.5rem' }}>
+            Cảm ơn bạn đã gửi đánh giá!
+          </h2>
+          <p style={{ color: 'var(--ink-secondary)', maxWidth: 450, margin: '0 auto 1.5rem', lineHeight: 1.6 }}>
+            Đánh giá của bạn đã được lưu và hiển thị công khai trên trang thông tin chỗ ở.
           </p>
           <div style={{ display: 'flex', gap: '1rem', justifyContent: 'center' }}>
-            <Link to={`/property/${booking?.propertyId || 1}`} className="btn btn-primary">
-              Xem đánh giá tại trang chỗ ở
+            <Link
+              to={`/property/${booking?.propertyId || 1}`}
+              className="btn btn-primary"
+              style={{
+                padding: '0.75rem 1.5rem',
+                borderRadius: 'var(--radius-md)',
+                fontWeight: 700,
+                fontSize: '0.92rem',
+              }}
+            >
+              Xem chỗ ở
             </Link>
-            <Link to="/my-bookings" className="btn btn-outline">
-              Quay lại Đơn của tôi
+            <Link
+              to="/my-bookings"
+              className="btn btn-outline"
+              style={{
+                padding: '0.75rem 1.5rem',
+                borderRadius: 'var(--radius-md)',
+                fontWeight: 600,
+                fontSize: '0.92rem',
+              }}
+            >
+              Về danh sách chuyến đi
             </Link>
           </div>
-        </section>
+        </div>
       )}
     </div>
   );
