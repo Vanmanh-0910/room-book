@@ -254,6 +254,6 @@ export default function MyBookingsPage() {
           </div>
         )}
       </section>
-    </div>
+    </main>
   );
 }
