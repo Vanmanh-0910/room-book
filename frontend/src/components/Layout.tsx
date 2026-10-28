@@ -11,7 +11,7 @@ import {
   PersonCircle,
   BagCheck,
   Building,
-  DoorOpen,
+  DoorOpen, DoorOpenFill,
   CalendarCheck,
   GraphUpArrow,
   PeopleFill,
@@ -34,6 +34,7 @@ export function Header() {
   const [menuOpen, setMenuOpen] = useState(false);
   const [activeTab, setActiveTab] = useState('all');
   const [isScrolled, setIsScrolled] = useState(false);
+  const [showLogoutModal, setShowLogoutModal] = useState(false);
   const menuRef = useRef<HTMLDivElement>(null);
 
   const isHome = location.pathname === '/';
@@ -417,7 +418,7 @@ export function Header() {
                   <button
                     type="button"
                     className="dropdown-item"
-                    onClick={handleLogout}
+                    onClick={handleOpenLogout}
                     style={{ color: 'var(--danger)' }}
                   >
                     <BoxArrowRight /> Đăng xuất
@@ -481,6 +482,108 @@ export function Header() {
           )}
         </div>
       </div>
+            {/* Friendly Luxury Logout Confirmation Modal */}
+      {showLogoutModal && (
+        <div
+          className="logout-modal-backdrop"
+          onClick={() => setShowLogoutModal(false)}
+        >
+          <div
+            className="logout-modal-box"
+            onClick={(e) => e.stopPropagation()}
+            role="dialog"
+            aria-modal="true"
+          >
+            {/* Soft pulsing avatar */}
+            <div className="logout-avatar-glow">
+              <DoorOpenFill />
+            </div>
+
+            <h2
+              style={{
+                fontSize: '1.4rem',
+                fontWeight: 800,
+                color: '#0F172A',
+                margin: '0 0 0.5rem',
+                letterSpacing: '-0.02em',
+              }}
+            >
+              Tạm biệt bạn nhé! 🌿
+            </h2>
+            <p style={{ margin: 0, color: '#64748B', fontSize: '0.92rem', lineHeight: 1.5 }}>
+              Bạn có chắc chắn muốn đăng xuất khỏi thiết bị này không?
+            </p>
+
+            {/* Current User Card */}
+            <div className="logout-user-preview">
+              <div
+                style={{
+                  width: 44,
+                  height: 44,
+                  borderRadius: '50%',
+                  background: 'linear-gradient(135deg, #FF385C 0%, #E00B41 100%)',
+                  color: '#FFFFFF',
+                  fontWeight: 700,
+                  fontSize: '1.1rem',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  flexShrink: 0,
+                }}
+              >
+                {(currentUser?.fullName || currentUser?.username || 'U').charAt(0).toUpperCase()}
+              </div>
+              <div style={{ flex: 1, minWidth: 0 }}>
+                <div style={{ fontWeight: 700, fontSize: '0.92rem', color: '#0F172A', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+                  {currentUser?.fullName || currentUser?.username}
+                </div>
+                <div style={{ fontSize: '0.78rem', color: '#64748B' }}>
+                  {currentUser?.role === 'HOST'
+                    ? '🏡 Đối tác Chủ nhà'
+                    : currentUser?.role === 'ADMIN'
+                    ? '🛡️ Quản trị viên'
+                    : '🎒 Khách trải nghiệm'}
+                </div>
+              </div>
+            </div>
+
+            <div
+              style={{
+                fontSize: '0.8rem',
+                color: '#10B981',
+                background: '#ECFDF5',
+                border: '1px solid #A7F3D0',
+                borderRadius: '10px',
+                padding: '0.55rem 0.75rem',
+                display: 'flex',
+                alignItems: 'center',
+                gap: '0.4rem',
+                justifyContent: 'center',
+              }}
+            >
+              <span>✓ Mọi phòng yêu thích và lịch sử đã được lưu an toàn.</span>
+            </div>
+
+            {/* Actions */}
+            <div className="logout-actions">
+              <button
+                type="button"
+                className="btn-stay"
+                onClick={() => setShowLogoutModal(false)}
+              >
+                Ở lại trải nghiệm
+              </button>
+              <button
+                type="button"
+                className="btn-confirm-logout"
+                onClick={handleConfirmLogout}
+              >
+                <BoxArrowRight /> Đăng xuất an toàn
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </header>
   );
 }
