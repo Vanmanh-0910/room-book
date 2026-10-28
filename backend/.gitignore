@@ -1,3 +1,5 @@
+bin/
+*.class
 .gradle/
 build/
 !**/src/main/**/build/
